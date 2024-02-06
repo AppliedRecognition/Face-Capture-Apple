@@ -8,7 +8,6 @@
 import SwiftUI
 import Combine
 import AVFoundation
-import AsyncAlgorithms
 
 public struct FaceCaptureSessionView: View {
     
