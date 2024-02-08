@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-public struct FaceCapture {
+public struct FaceCapture: Hashable {
     
     public let image: Image
     public let face: Face

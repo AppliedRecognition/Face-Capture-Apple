@@ -9,5 +9,5 @@ import Foundation
 
 public protocol FaceDetection: AnyObject {
     
-    func detectFacesInImage(_ image: Image) throws -> [Face]
+    func detectFacesInImage(_ image: Image, limit: Int) throws -> [Face]
 }

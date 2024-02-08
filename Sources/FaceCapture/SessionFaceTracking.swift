@@ -45,7 +45,7 @@ final class SessionFaceTracking {
     func trackFace(in imageCapture: FaceCaptureSessionImageInput) throws -> FaceTrackingResult {
         let imageSize = CGSize(width: imageCapture.image.width, height: imageCapture.image.height)
         let expectedFaceBounds = self.expectedFaceBoundsInImageSize(imageSize)
-        if let face = try self.faceDetection.detectFacesInImage(imageCapture.image).first {
+        if let face = try self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first {
             let alignedFace = AlignedFace(face)
             self.faces.append(alignedFace)
             let smoothedFace = self.smoothedFace!
@@ -85,11 +85,11 @@ final class SessionFaceTracking {
             self.angleHistory.removeAll()
         }
         var result: FaceTrackingResult = .started(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds))
-        if !self.hasFaceBeenFixed && !self.faces.isEmpty && self.faces.allSatisfy({ $0.isFixed }) {
+        if !self.hasFaceBeenFixed && self.faces.hasRemovedElements && self.faces.allSatisfy({ $0.isFixed }) {
             self.hasFaceBeenFixed = true
             return .faceFixed(TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!))
         }
-        if self.hasFaceBeenFixed, let oldestFaceTime = self.faces.oldestElementTimestamp, CACurrentMediaTime() - oldestFaceTime > 0.4 {
+        if self.hasFaceBeenFixed, self.faces.hasRemovedElements {
             if self.faces.allSatisfy({ $0.isAligned }) {
                 let now = CACurrentMediaTime()
                 if let alignTime = self.alignTime, now-alignTime < self.settings.pauseDuration {

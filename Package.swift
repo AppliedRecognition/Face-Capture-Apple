@@ -25,7 +25,7 @@ let package = Package(
             dependencies: [
 //                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "LivenessDetection", package: "Liveness-Detection-Apple")
-            ], 
+            ],
             resources: [
                 .process("Resources")
             ]

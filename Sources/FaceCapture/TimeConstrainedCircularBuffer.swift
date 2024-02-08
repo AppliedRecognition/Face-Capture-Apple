@@ -14,6 +14,7 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     private let duration: TimeInterval
     private let lock = NSLock()
     private var currentIndex: Int = 0
+    private(set) public var hasRemovedElements: Bool = false
     
     public typealias Element = T
     
@@ -36,8 +37,8 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     public func append(_ element: T) {
         let timestamp = CACurrentMediaTime()
         self.lock.withLock {
-            self.buffer.append((element, timestamp))
             self.removeExpiredElements()
+            self.buffer.append((element, timestamp))
         }
     }
     
@@ -80,6 +81,7 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     
     public func clear() {
         self.lock.withLock {
+            self.hasRemovedElements = false
             self.buffer.removeAll()
         }
     }
@@ -110,9 +112,13 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     
     private func removeExpiredElements() {
         let currentTime = CACurrentMediaTime()
+        let startCount = self.buffer.count
         self.buffer.removeAll { element in
             let elapsedTime = currentTime - element.timestamp
             return elapsedTime >= self.duration
+        }
+        if startCount > self.buffer.count {
+            self.hasRemovedElements = true
         }
     }
 }

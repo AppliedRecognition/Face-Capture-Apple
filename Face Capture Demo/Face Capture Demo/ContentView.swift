@@ -8,7 +8,7 @@
 import SwiftUI
 import FaceCapture
 
-struct ContentView: View {
+struct ModalView: View {
     
     @StateObject var session: FaceCaptureSession = FaceCaptureSession()
     

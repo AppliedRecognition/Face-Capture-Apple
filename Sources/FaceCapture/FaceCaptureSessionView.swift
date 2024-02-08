@@ -12,8 +12,13 @@ import AVFoundation
 public struct FaceCaptureSessionView: View {
     
     @ObservedObject public var session: FaceCaptureSession
-    @State var orientation: CGImagePropertyOrientation
-    @State var videoOrientation: AVCaptureVideoOrientation
+    @State private var promptText: String = "Preparing face detection" {
+        didSet {
+            self.onTextPromptChange?(self.promptText)
+        }
+    }
+    @State private var orientation: CGImagePropertyOrientation
+    @State private var videoOrientation: AVCaptureVideoOrientation?
     let cameraControl: CameraControl
     private let usingFrontCamera: Bool
     @State private var cameraTask: Task<(),Error>?
@@ -30,18 +35,34 @@ public struct FaceCaptureSessionView: View {
     }
     @State private var last3DHeadAppearanceTime: Double?
     private var angleBearingEvaluation: AngleBearingEvaluation
-    
-    public init(session: FaceCaptureSession) {
-        self.init(session: session, useFrontCamera: true)
+    private var textPromptProvider: (FaceTrackingResult) -> String = { faceTrackingResult in
+        switch faceTrackingResult {
+        case .created:
+            return "Preparing face detection"
+        case .faceFixed, .faceAligned, .paused:
+            return "Great, hold it"
+        case .faceMisaligned:
+            return "Follow the arrow"
+        default:
+            return "Align your face with the oval"
+        }
     }
+    private let onTextPromptChange: ((String) -> Void)?
+    private let onResult: ((FaceCaptureSessionResult) -> Void)?
+    public let showTextPrompts: Bool
     
-    public init(session: FaceCaptureSession, useFrontCamera: Bool) {
+    public init(session: FaceCaptureSession, useBackCamera: Bool=false, showTextPrompts: Bool=true, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) {
         self.session = session
-        self.usingFrontCamera = useFrontCamera
-        self.cameraControl = CameraControl(useFrontCamera: useFrontCamera)
+        self.usingFrontCamera = !useBackCamera
+        self.showTextPrompts = showTextPrompts
+        if let promptProvider = textPromptProvider {
+            self.textPromptProvider = promptProvider
+        }
+        self.onTextPromptChange = onTextPromptChange
+        self.onResult = onResult
+        self.cameraControl = CameraControl(useFrontCamera: !useBackCamera)
         self.angleBearingEvaluation = AngleBearingEvaluation(sessionSettings: session.settings)
-        self._orientation = State(initialValue: UIDevice.current.orientation.cgImagePropertyOrientation)
-        self._videoOrientation = State(initialValue: UIDevice.current.orientation.videoOrientation)
+        self.orientation = UIDevice.current.orientation.cgImagePropertyOrientation
     }
     
     private func cameraPreviewTransformFromResult(_ result: FaceTrackingResult, viewSize: CGSize) -> CGAffineTransform {
@@ -59,18 +80,9 @@ public struct FaceCaptureSessionView: View {
         }
     }
     
-    private var promptText: String {
-        switch self.faceTrackingResult {
-        case .created:
-            return "Preparing face detection"
-        case .faceFixed, .faceAligned, .paused:
-            return "Great, hold it"
-        case .faceMisaligned:
-            return "Follow the arrow"
-        default:
-            return "Align your face with the oval"
-        }
-    }
+//    private var promptText: String {
+//        self.promptTextSupplier(self.faceTrackingResult)
+//    }
     
     public var body: some View {
         GeometryReader { geometryReader in
@@ -79,7 +91,6 @@ public struct FaceCaptureSessionView: View {
                     .transformEffect(self.cameraPreviewTransformFromResult(self.faceTrackingResult, viewSize: geometryReader.size))
                     .clipShape(FaceOval(faceTrackingResult: self.faceTrackingResult))
                     .onReceive(self.session.faceTrackingResult) { faceTrackingResult in
-                        let previousTrackingResult = self.faceTrackingResult
                         self.faceTrackingResult = faceTrackingResult.scaledToFitViewSize(geometryReader.size, mirrored: self.usingFrontCamera)
                         if let faceWidth = faceTrackingResult.smoothedFace?.bounds.width {
                             self.lineWidth = faceWidth / 60
@@ -98,35 +109,45 @@ public struct FaceCaptureSessionView: View {
                                 self.isShowing3DHead = false
                             }
                         }
+                        self.promptText = self.textPromptProvider(faceTrackingResult)
+                    }
+                    .onReceive(self.session.$result) { result in
+                        if let result = result, let onResult = self.onResult {
+                            onResult(result)
+                        }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                         self.orientation = UIDevice.current.orientation.cgImagePropertyOrientation
                         self.videoOrientation = UIDevice.current.orientation.videoOrientation
                     }
-                    .onReceive(Just(session.isStarted.wrappedValue)) { running in
-                        if running && (self.cameraTask == nil || self.cameraTask!.isCancelled) {
-                            self.cameraTask = Task(priority: .high) {
-                                let stream = try await self.cameraControl.start()
-                                var serialNumber: UInt64 = 0
-                                let startTime = CACurrentMediaTime()
-                                for await sample in stream {
-                                    if Task.isCancelled {
-                                        break
-                                    }
-                                    let viewSize = geometryReader.size
-                                    if var image = try? sample.convertToImage(), viewSize != .zero {
-                                        do {
-                                            try await image.applyOrientation(self.orientation)
-                                        } catch {}
-                                        let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: image.size))
-                                        image.cropToRect(rect)
-                                        await self.session.addInputFrame(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image))
-                                        serialNumber += 1
-                                    }
-                                }
-                                self.cameraTask = nil
+                    .onAppear {
+                        self.cameraTask = Task(priority: .high) {
+                            let stream = try await self.cameraControl.start()
+                            await MainActor.run {
+                                self.videoOrientation = UIDevice.current.orientation.videoOrientation
                             }
-                        } else if !running, let cameraTask = self.cameraTask {
+                            var serialNumber: UInt64 = 0
+                            let startTime = CACurrentMediaTime()
+                            for await sample in stream {
+                                if Task.isCancelled {
+                                    break
+                                }
+                                let viewSize = geometryReader.size
+                                if var image = try? sample.convertToImage(), viewSize != .zero {
+                                    do {
+                                        try await image.applyOrientation(self.orientation)
+                                    } catch {}
+                                    let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: image.size))
+                                    image.cropToRect(rect)
+                                    await self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image))
+                                    serialNumber += 1
+                                }
+                            }
+                            self.cameraTask = nil
+                        }
+                    }
+                    .onDisappear {
+                        if let cameraTask = self.cameraTask {
                             cameraTask.cancel()
                             self.cameraTask = nil
                             Task {
@@ -146,10 +167,12 @@ public struct FaceCaptureSessionView: View {
                     .shadow(radius: 10)
 //                DetectedFaceOval(faceTrackingResult: self.faceTrackingResult)
 //                    .stroke(Color.primary, style: StrokeStyle(lineWidth: self.lineWidth))
-                VStack(alignment: .center) {
-                    Text(self.promptText)
-                        .padding(.top, 32)
-                    Spacer()
+                if self.showTextPrompts {
+                    VStack(alignment: .center) {
+                        Text(self.promptText)
+                            .padding(.top, 32)
+                        Spacer()
+                    }
                 }
             }
         }
@@ -206,16 +229,20 @@ class CameraPreviewUIView: UIView {
 struct CameraPreviewView: UIViewRepresentable {
     
     let cameraControl: CameraControl
-    @Binding var videoOrientation: AVCaptureVideoOrientation
+    @Binding var videoOrientation: AVCaptureVideoOrientation?
     
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView(cameraControl: self.cameraControl)
-        view.videoOrientation = self.videoOrientation
+        if let orientation = self.videoOrientation {
+            view.videoOrientation = orientation
+        }
         return view
     }
     
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
-        uiView.videoOrientation = self.videoOrientation
+        if let orientation = self.videoOrientation {
+            uiView.videoOrientation = orientation
+        }
     }
 }
 

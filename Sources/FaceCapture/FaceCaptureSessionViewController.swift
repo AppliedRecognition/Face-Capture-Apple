@@ -43,7 +43,7 @@ class FaceCaptureSessionViewController: UIViewController {
                 try image.applyOrientation(self.cgImageOrientation)
                 image.cropToRect(rect)
                 let inputFrame = FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image)
-                self.session.addInputFrame(inputFrame)
+                self.session.submitImageInput(inputFrame)
                 serialNumber += 1
             }
         }

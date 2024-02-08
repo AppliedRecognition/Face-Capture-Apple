@@ -85,7 +85,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
         }
     }
     
-    var serialNumber: UInt64? {
+    public var serialNumber: UInt64? {
         if let input = self.input {
             return input.serialNumber
         } else {
@@ -93,7 +93,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
         }
     }
     
-    var faceCapture: FaceCapture? {
+    public var faceCapture: FaceCapture? {
         if case .faceAligned(let props) = self {
             return FaceCapture(image: props.input.image, face: props.face, bearing: props.requestedBearing)
         } else {
@@ -101,7 +101,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
         }
     }
     
-    var expectedFaceBounds: CGRect? {
+    public var expectedFaceBounds: CGRect? {
         switch self {
         case .started(let props):
             return props.expectedFaceBounds
@@ -115,6 +115,25 @@ public enum FaceTrackingResult: Hashable, Sendable {
             return props.expectedFaceBounds
         case .faceMisaligned(let props):
             return props.expectedFaceBounds
+        default:
+            return nil
+        }
+    }
+    
+    public var time: Double? {
+        switch self {
+        case .started(let props):
+            return props.input.time
+        case .paused(let props):
+            return props.input.time
+        case .faceFound(let props):
+            return props.input.time
+        case .faceFixed(let props):
+            return props.input.time
+        case .faceAligned(let props):
+            return props.input.time
+        case .faceMisaligned(let props):
+            return props.input.time
         default:
             return nil
         }

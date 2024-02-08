@@ -10,32 +10,25 @@ import Combine
 import SwiftUI
 import AVFoundation
 
-public class FaceCaptureSession: ObservableObject {
+public class FaceCaptureSession: ObservableObject, Hashable {
     
-//    @Published private(set) public var faceTrackingResult: FaceTrackingResult
     public var faceTrackingResult: AnyPublisher<FaceTrackingResult,Never> {
         self.faceTrackingResultSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
+    @Published private(set) public var result: FaceCaptureSessionResult?
+    
     private var faceTrackingResultSubject: PassthroughSubject<FaceTrackingResult,Never> = PassthroughSubject()
-    @Published public var result: FaceCaptureSessionResult?
-    public var isStarted: Binding<Bool> {
-        Binding {
-            self.sessionTask != nil && !self.sessionTask!.isCancelled
-        } set: { val in
-            if val && (self.sessionTask == nil || self.sessionTask!.isCancelled) {
-                self.start()
-            } else if !val && self.sessionTask != nil && !self.sessionTask!.isCancelled {
-                self.cancel()
-            }
-        }
-    }
     private var input: AsyncStream<FaceCaptureSessionImageInput>.Continuation?
     private var sessionTask: Task<Void,Error>?
     private var moduleTasks: [String:Task<[UInt64:Encodable],Error>] = [:]
+    private var pluginTasks: [String:Task<any FaceTrackingPluginResult,Error>] = [:]
+    private var plugins: [any FaceTrackingPlugin] = []
     private var faceTracking: SessionFaceTracking
     private var continuations: Array<AsyncStream<FaceTrackingResult>.Continuation> = []
     private var faceTrackingModules: Array<FaceTrackingModule> = []
-    lazy var settings: FaceCaptureSessionSettings = self.faceTracking.settings
+    private let id: UUID
+    weak var delegate: FaceCaptureSessionDelegate?
+    public lazy var settings: FaceCaptureSessionSettings = self.faceTracking.settings
     
     public convenience init() {
         self.init(faceDetection: AppleFaceDetection(), settings: FaceCaptureSessionSettings())
@@ -45,17 +38,16 @@ public class FaceCaptureSession: ObservableObject {
         self.init(faceDetection: AppleFaceDetection(), settings: settings)
     }
     
-    public init(faceDetection: FaceDetection, settings: FaceCaptureSessionSettings) {
+    public init(faceDetection: FaceDetection, settings: FaceCaptureSessionSettings, delegate: FaceCaptureSessionDelegate?=nil) {
+        self.id = UUID()
         self.faceTracking = SessionFaceTracking(faceDetection: faceDetection, settings: settings)
         self.faceTrackingResultSubject.send(.created(self.faceTracking.requestedBearing))
+        self.delegate = delegate
+//        if let livenessDetectionPlugin = try? LivenessDetectionPlugin() {
+//            self.plugins.append(livenessDetectionPlugin)
+//        }
         if let livenessDetection = try? LivenessDetectionModule() {
             self.faceTrackingModules.append(livenessDetection)
-        }
-    }
-    
-    public func start() {
-        if let task = self.sessionTask, !task.isCancelled {
-            return
         }
         let input = AsyncStream<FaceCaptureSessionImageInput>(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.input = continuation
@@ -65,16 +57,13 @@ public class FaceCaptureSession: ObservableObject {
         self.faceTracking.reset()
         self.result = nil
         self.moduleTasks = Dictionary(faceTrackingModules.map { $0.run(inputStream: self.addFaceTrackingStream()) }) { $1 }
+//        let pluginTuples: (String,Task<any FaceTrackingPluginResult,Error>) = self.plugins.map { plugin in
+//            let task = self.runTaskForPlugin(plugin)
+//            return (plugin.name, task)
+//        }
+//        self.pluginTasks = Dictionary(pluginTuples) { $1 }
         self.sessionTask = Task {
             var faceCaptures: [FaceCapture] = []
-//            let moduleTask = Task {
-//                let results = self.faceTrackingModules.async.map { ($0.name, try await $0.results) }
-//                var metadata: [String:[UInt64:any Codable]] = [:]
-//                for try await result in results {
-//                    metadata[result.0] = result.1
-//                }
-//                return metadata
-//            }
             let result: FaceCaptureSessionResult
             do {
                 for await inp in input {
@@ -130,6 +119,7 @@ public class FaceCaptureSession: ObservableObject {
             }
             await MainActor.run {
                 self.result = result
+                self.delegate?.faceCaptureSession(self, didFinishWithResult: result)
             }
         }
     }
@@ -138,13 +128,26 @@ public class FaceCaptureSession: ObservableObject {
         Task {
             await MainActor.run {
                 self.result = nil
+                self.delegate?.didCancelFaceCaptureSession(self)
             }
             self.finishSession()
         }
     }
     
-    public func addInputFrame(_ inputFrame: FaceCaptureSessionImageInput) {
-        self.input?.yield(inputFrame)
+    public func submitImageInput(_ imageInput: FaceCaptureSessionImageInput) {
+        self.input?.yield(imageInput)
+    }
+    
+    public static func == (lhs: FaceCaptureSession, rhs: FaceCaptureSession) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
+    }
+    
+    private func runTaskForPlugin<T: FaceTrackingPluginResult>(_ plugin: some FaceTrackingPlugin<T>) -> Task<[T],Error> {
+        return plugin.run(inputStream: self.addFaceTrackingStream())
     }
     
     private var metadata: [String: [UInt64:Encodable]] {
@@ -182,41 +185,9 @@ public class FaceCaptureSession: ObservableObject {
     }
 }
 
-//protocol FaceTrackingModule where Result: Codable {
-//    associatedtype Result
-//    var name: String { get }
-//    var channel: AsyncThrowingChannel<(UInt64,Result), Error> { get }
-//    var results: [UInt64:Result] { get async throws }
-//    func run(inputStream: AsyncStream<FaceTrackingResult>) -> Task<(),Error>
-//    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> Result
-//}
-//
-//extension FaceTrackingModule {
-//    var results: [UInt64:Result] {
-//        get async throws {
-//            try await self.channel.reduce(into: [UInt64:Result]()) { current, next in
-//                NSLog("%@: set value at frame %ld to \(next.1)", self.name, next.0)
-//                current[next.0] = next.1
-//            }
-//        }
-//    }
-//    func run(inputStream: AsyncStream<FaceTrackingResult>) -> Task<(),Error> {
-//        Task {
-//            for await faceTrackingResult in inputStream {
-//                if Task.isCancelled {
-//                    break
-//                }
-//                if let frame = faceTrackingResult.serialNumber {
-//                    do {
-//                        let value = try self.processFaceTrackingResult(faceTrackingResult)
-//                        await self.channel.send((frame, value))
-//                    } catch {
-//                        self.channel.fail(error)
-//                        return
-//                    }
-//                }
-//            }
-//            self.channel.finish()
-//        }
-//    }
-//}
+public protocol FaceCaptureSessionDelegate: AnyObject {
+    
+    func faceCaptureSession(_ faceCaptureSession: FaceCaptureSession, didFinishWithResult result: FaceCaptureSessionResult)
+    
+    func didCancelFaceCaptureSession(_ faceCaptureSession: FaceCaptureSession)
+}

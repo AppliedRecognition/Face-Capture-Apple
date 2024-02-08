@@ -11,33 +11,33 @@ import SwiftUI
 
 public struct FaceCaptureSessionViewModifier: ViewModifier {
     
-    @ObservedObject public var session: FaceCaptureSession
-    public let onResult: ((FaceCaptureSessionResult) -> Void)?
+    @ObservedObject public var sessionManager: FaceCaptureSessionManager
+    let useBackCamera: Bool
+    let textPromptProvider: ((FaceTrackingResult) -> String)?
+    let onTextPromptChange: ((String) -> Void)?
+    let onResult: ((FaceCaptureSessionResult) -> Void)?
     
-    public init(session: FaceCaptureSession, onResult: @escaping (FaceCaptureSessionResult) -> Void) {
-        self.session = session
+    public init(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) {
+        self.sessionManager = sessionManager
+        self.useBackCamera = useBackCamera
+        self.textPromptProvider = textPromptProvider
+        self.onTextPromptChange = onTextPromptChange
         self.onResult = onResult
-    }
-    
-    public init(session: FaceCaptureSession) {
-        self.session = session
-        self.onResult = nil
     }
     
     public func body(content: Content) -> some View {
         content
-            .sheet(isPresented: self.session.isStarted) {
-                if #available(iOS 14, *) {
-                    FaceCaptureSessionView(session: self.session)
-                        .ignoresSafeArea()
+            .sheet(isPresented: self.$sessionManager.isSessionRunning) {
+                if let session = self.sessionManager.session {
+                    if #available(iOS 14, *) {
+                        FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, textPromptProvider: self.textPromptProvider, onTextPromptChange: self.onTextPromptChange, onResult: self.onResult)
+                            .ignoresSafeArea()
+                    } else {
+                        FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, textPromptProvider: self.textPromptProvider, onTextPromptChange: self.onTextPromptChange, onResult: self.onResult)
+                            .edgesIgnoringSafeArea(.all)
+                    }
                 } else {
-                    FaceCaptureSessionView(session: self.session)
-                        .edgesIgnoringSafeArea(.all)
-                }
-            }
-            .onReceive(Just(self.session.result)) { result in
-                if let res = result, let onResult = self.onResult {
-                    onResult(res)
+                    EmptyView()
                 }
             }
     }
@@ -45,11 +45,7 @@ public struct FaceCaptureSessionViewModifier: ViewModifier {
 
 public extension View {
     
-    func faceCaptureSession(_ session: FaceCaptureSession, onResult: @escaping (FaceCaptureSessionResult) -> Void) -> some View {
-        return self.modifier(FaceCaptureSessionViewModifier(session: session, onResult: onResult))
-    }
-    
-    func faceCaptureSession(_ session: FaceCaptureSession) -> some View {
-        return self.modifier(FaceCaptureSessionViewModifier(session: session))
+    func faceCaptureSessionSheet(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) -> some View {
+        return self.modifier(FaceCaptureSessionViewModifier(sessionManager: sessionManager, useBackCamera: useBackCamera, textPromptProvider: textPromptProvider, onTextPromptChange: onTextPromptChange, onResult: onResult))
     }
 }

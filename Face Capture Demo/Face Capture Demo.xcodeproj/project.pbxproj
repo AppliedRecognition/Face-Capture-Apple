@@ -8,20 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		3B37509D2B698D9C000F44BB /* Face_Capture_DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */; };
-		3B37509F2B698D9C000F44BB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ContentView.swift */; };
+		3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ModalView.swift */; };
 		3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A02B698DA1000F44BB /* Assets.xcassets */; };
 		3B3750A42B698DA1000F44BB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A32B698DA1000F44BB /* Preview Assets.xcassets */; };
 		3B3750AC2B698DD2000F44BB /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B3750AB2B698DD2000F44BB /* FaceCapture */; };
 		3B3750AF2B6991C2000F44BB /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B3750AE2B6991C2000F44BB /* FaceCapture */; };
+		3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */; };
 		3B6CCDD22B72BEBC008A801D /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B6CCDD12B72BEBC008A801D /* FaceCapture */; };
+		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
+		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
+		3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD72B72C770008A801D /* NavStackView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3B3750992B698D9C000F44BB /* Face Capture Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Face Capture Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Face_Capture_DemoApp.swift; sourceTree = "<group>"; };
-		3B37509E2B698D9C000F44BB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3B37509E2B698D9C000F44BB /* ModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalView.swift; sourceTree = "<group>"; };
 		3B3750A02B698DA1000F44BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B3750A32B698DA1000F44BB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCaptureResultView.swift; sourceTree = "<group>"; };
+		3B6CCDD32B72C258008A801D /* IndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexView.swift; sourceTree = "<group>"; };
+		3B6CCDD52B72C766008A801D /* EmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedView.swift; sourceTree = "<group>"; };
+		3B6CCDD72B72C770008A801D /* NavStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavStackView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,9 +66,13 @@
 			isa = PBXGroup;
 			children = (
 				3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */,
-				3B37509E2B698D9C000F44BB /* ContentView.swift */,
+				3B37509E2B698D9C000F44BB /* ModalView.swift */,
 				3B3750A02B698DA1000F44BB /* Assets.xcassets */,
 				3B3750A22B698DA1000F44BB /* Preview Content */,
+				3B6CCDD32B72C258008A801D /* IndexView.swift */,
+				3B6CCDD52B72C766008A801D /* EmbeddedView.swift */,
+				3B6CCDD72B72C770008A801D /* NavStackView.swift */,
+				3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */,
 			);
 			path = "Face Capture Demo";
 			sourceTree = "<group>";
@@ -151,7 +163,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B37509F2B698D9C000F44BB /* ContentView.swift in Sources */,
+				3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */,
+				3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */,
+				3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */,
+				3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */,
+				3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */,
 				3B37509D2B698D9C000F44BB /* Face_Capture_DemoApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -295,6 +311,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -325,6 +342,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
