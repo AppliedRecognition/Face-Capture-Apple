@@ -42,7 +42,7 @@ public class HeadUIView3D: SCNView {
     
     public var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init()) {
         didSet {
-            self.camera.fieldOfView = CGFloat(atan2(self.headNode.boundingSphere.radius*1.7, self.cameraNode.position.z) / .pi * 180)
+            self.camera.fieldOfView = CGFloat(atan2(self.headNode.boundingSphere.radius*2.2, self.cameraNode.position.z) / .pi * 180)
             if self.isAnimating {
                 return
             }
@@ -61,20 +61,11 @@ public class HeadUIView3D: SCNView {
             animation.delegate = self
             animation.duration = 1.0
             animation.timingFunction = CAMediaTimingFunction.init(name: .easeInEaseOut)
+            animation.fillMode = .forwards
+            animation.isRemovedOnCompletion = false
             animation.animations = [yawAnimation, pitchAnimation]
             self.headNode.removeAnimation(forKey: "rotation")
             self.headNode.addAnimation(animation, forKey: "rotation")
-                
-                
-//                self.headNode.eulerAngles.x = self.headAngle.start.pitch / 180 * .pi
-//                self.headNode.eulerAngles.y = self.headAngle.start.yaw / 180 * .pi
-//                UIView.animate(withDuration: 1.5) {
-//                    self.headNode.eulerAngles.x = endPitch
-//                    self.headNode.eulerAngles.y = endYaw
-//                } completion: { completed in
-//                    self.isAnimating = false
-//                }
-//            NSLog("Head angle set to: yaw %.0f, pitch %.0f", self.headAngle.yaw, self.headAngle.pitch)
         }
     }
     

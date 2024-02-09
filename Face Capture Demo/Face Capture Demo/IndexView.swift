@@ -18,11 +18,11 @@ struct IndexView: View {
         .navigationDestination(for: Demo.self) { demo in
             switch demo {
             case .modal:
-                ModalView(navigationPath: self.$navigationPath)
+                ModalView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
             case .embedded:
-                EmbeddedView(navigationPath: self.$navigationPath)
+                EmbeddedView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
             case .navigationStack:
-                NavStackView(navigationPath: self.$navigationPath)
+                NavStackView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
             }
         }
     }
@@ -33,45 +33,68 @@ fileprivate struct _IndexView: View {
     let onNavigate: (Demo) -> Void
     
     var body: some View {
-//        VStack {
-//            HStack {
-//                Text("This app shows how to configure and run and embed face capture sessions into SwiftUI views")
-//                Spacer()
-//            }
-            List {
-                DemoSection(title: "Modal", description: "Shows how to configure and run face capture by presenting a modal sheet.", demo: .modal, onNavigate: self.onNavigate)
-                DemoSection(title: "Embedded", description: "Shows how to embed a face capture session view in your layout.", demo: .embedded , onNavigate: self.onNavigate)
-                DemoSection(title: "Navigation", description: "Shows how to launch a face capture session in a view pushed to the navigation stack.", demo: .navigationStack, onNavigate: self.onNavigate)
+        List {
+            DemoSection(demo: .modal(title: "Modal", description: "This example shows how to configure and run face capture presented in a modal sheet."), onNavigate: self.onNavigate)
+            DemoSection(demo: .embedded(title: "Embedded", description: "This example shows how to embed a face capture session view in your layout.") , onNavigate: self.onNavigate)
+            DemoSection(demo: .navigationStack(title: "Navigation", description: "This example shows how to run a face capture session in a view pushed to a navigation stack. The session will start as soon as the view is pushed on to the stack. Once the session finishes the view is popped off the stack."), onNavigate: self.onNavigate)
+        }
+        .listStyle(.insetGrouped)
+        .listRowInsets(.none)
+        .navigationTitle("Face capture")
+        .toolbar {
+            ToolbarItem {
+                NavigationLink {
+                    SettingsView()
+                } label: {
+                    Image(systemName: "gearshape")
+                }
             }
-            .listStyle(.insetGrouped)
-            .listRowInsets(.none)
-//            Spacer()
-//        }
-//        .padding()
-        .navigationTitle("Face capture demos")
+        }
     }
 }
 
-fileprivate enum Demo: Int, Hashable {
-    case modal, embedded, navigationStack
+fileprivate enum Demo: Hashable {
+    case modal(title: String, description: String)
+    case embedded(title: String, description: String)
+    case navigationStack(title: String, description: String)
+    
+    var title: String {
+        switch self {
+        case .modal(title: let title, description: _):
+            return title
+        case .embedded(title: let title, description: _):
+            return title
+        case .navigationStack(title: let title, description: _):
+            return title
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .modal(title: _, description: let description):
+            return description
+        case .embedded(title: _, description: let description):
+            return description
+        case .navigationStack(title: _, description: let description):
+            return description
+        }
+    }
 }
 
 fileprivate struct DemoSection: View {
     
-    let title: String
-    let description: String
     let demo: Demo
     let onNavigate: (Demo) -> Void
     
     var body: some View {
         Section {
             HStack {
-                Text(self.title).font(.title2).foregroundStyle(Color.accentColor)
+                Text(self.demo.title).font(.title2).foregroundStyle(Color.accentColor)
                 Spacer()
                 Image(systemName: "play.circle.fill").imageScale(.large).foregroundStyle(Color.accentColor)
             }
             HStack {
-                Text(self.description)
+                Text(self.demo.description)
                 Spacer()
             }
         }

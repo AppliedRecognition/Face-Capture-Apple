@@ -12,16 +12,19 @@ struct ModalView: View {
     
     @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
+    let settings = Settings()
+    let title: String
+    let description: String
     
     var body: some View {
         VStack {
             HStack {
-                IntroString()
+                Text(self.description)
                 Spacer()
             }
             HStack {
                 Button {
-                    self.faceCaptureSessionManager.startSession()
+                    self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")
@@ -35,19 +38,9 @@ struct ModalView: View {
         .navigationDestination(for: FaceCaptureSessionResult.self) { result in
             FaceCaptureResultView(result: result)
         }
-        .faceCaptureSessionSheet(sessionManager: self.faceCaptureSessionManager, onResult: { result in
+        .faceCaptureSessionSheet(sessionManager: self.faceCaptureSessionManager, useBackCamera: self.settings.useBackCamera, onResult: { result in
             self.navigationPath.append(result)
         })
-        .navigationTitle("Modal")
-    }
-}
-
-fileprivate struct IntroString: View {
-    var body: some View {
-        Text("This example shows how to present a face capture session in a sheet. Simply add the ")
-        + Text(".faceCaptureSessionSheet()").font(.system(.body, design: .monospaced))
-        + Text(" view modifier and the sheet will appear when you call ")
-        + Text("startSession()").font(.system(.body, design: .monospaced))
-        + Text(" on the session manager.")
+        .navigationTitle(self.title)
     }
 }

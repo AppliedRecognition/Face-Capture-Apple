@@ -47,6 +47,8 @@ public struct FaceCaptureSessionView: View {
             return "Align your face with the oval"
         }
     }
+    private var headAppearanceInterval: TimeInterval = 3.0
+    private var headAppearanceDuration: TimeInterval = 1.8
     private let onTextPromptChange: ((String) -> Void)?
     private let onResult: ((FaceCaptureSessionResult) -> Void)?
     public let showTextPrompts: Bool
@@ -80,10 +82,6 @@ public struct FaceCaptureSessionView: View {
         }
     }
     
-//    private var promptText: String {
-//        self.promptTextSupplier(self.faceTrackingResult)
-//    }
-    
     public var body: some View {
         GeometryReader { geometryReader in
             ZStack {
@@ -103,9 +101,9 @@ public struct FaceCaptureSessionView: View {
                             let targetAngle = self.angleBearingEvaluation.angle(forBearing: faceTrackingResult.requestedBearing)
                             self.headAngle = (start: props.smoothedFace.angle, end: targetAngle)
                             let timeSinceLastHeadAppearance = now - self.last3DHeadAppearanceTime!
-                            if timeSinceLastHeadAppearance > 3.0 {
+                            if timeSinceLastHeadAppearance > self.headAppearanceInterval {
                                 self.isShowing3DHead = true
-                            } else if timeSinceLastHeadAppearance > 1.0 {
+                            } else if timeSinceLastHeadAppearance > self.headAppearanceDuration {
                                 self.isShowing3DHead = false
                             }
                         }

@@ -44,7 +44,7 @@ final class SessionFaceTracking {
     
     func trackFace(in imageCapture: FaceCaptureSessionImageInput) throws -> FaceTrackingResult {
         let imageSize = CGSize(width: imageCapture.image.width, height: imageCapture.image.height)
-        let expectedFaceBounds = self.expectedFaceBoundsInImageSize(imageSize)
+        let expectedFaceBounds = self.settings.expectedFaceBoundsInSize(imageSize)
         if let face = try self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first {
             let alignedFace = AlignedFace(face)
             self.faces.append(alignedFace)
@@ -54,27 +54,27 @@ final class SessionFaceTracking {
 //            NSLog("Face in frame %ld: aligned = %@, fixed = %@", imageCapture.serialNumber, self.faces.last!.isAligned ? "yes" : "no", self.faces.last!.isFixed ? "yes" : "no")
 //            NSLog("In frame %ld there were %d faces in the buffer: %d aligned and %d fixed", imageCapture.serialNumber, self.faces.count, self.faces.filter { $0.isAligned }.count, self.faces.filter { $0.isFixed }.count)
             if self.settings.faceCaptureCount > 1 {
-                self.angleHistory.append(face.angle)
+                self.angleHistory.append(smoothedFace.angle)
                 if let previousBearing = self.previousBearing, previousBearing != self.requestedBearing {
                     let previousAngle = self.angleBearingEvaluation.angle(forBearing: previousBearing)
                     let currentAngle = self.angleBearingEvaluation.angle(forBearing: self.requestedBearing)
                     let startYaw = min(previousAngle.yaw, currentAngle.yaw)
                     let endYaw = max(previousAngle.yaw, currentAngle.yaw)
                     let yawTolerance = self.angleBearingEvaluation.thresholdAngleTolerance(forAxis: .yaw)
-                    var movedTooFast = self.angleHistory.count > 1
+//                    var movedTooFast = self.angleHistory.count > 1
                     var movedOpposite = false
                     for angle in self.angleHistory {
-                        if angle.yaw > startYaw + yawTolerance && angle.yaw < endYaw - yawTolerance {
-                            movedTooFast = false
-                        }
+//                        if angle.yaw > startYaw + yawTolerance && angle.yaw < endYaw - yawTolerance {
+//                            movedTooFast = false
+//                        }
                         if !self.angleBearingEvaluation.angle(angle, isBetweenBearing: previousBearing, and: self.requestedBearing) {
                             movedOpposite = true
                         }
                     }
-                    if movedTooFast {
-                        throw "Moved too fast"
-//                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
-                    }
+//                    if movedTooFast {
+//                        throw "Moved too fast"
+////                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
+//                    }
                     if movedOpposite {
                         throw "Moved opposite"
 //                        throw FaceCaptureError.activeLivenessError(reason: .movedOpposite(bearing: requestedBearing))
@@ -129,20 +129,6 @@ final class SessionFaceTracking {
         self.alignTime = nil
         self.requestedBearing = .straight
         self.previousBearing = nil
-    }
-    
-    func expectedFaceBoundsInImageSize(_ imageSize: CGSize) -> CGRect {
-        let imageAspectRatio: CGFloat = imageSize.width / imageSize.height
-        let expectedFaceAspectRatio: CGFloat = 4 / 5
-        var size: CGSize = .zero
-        if imageAspectRatio > expectedFaceAspectRatio {
-            size.height = imageSize.height * 0.85
-            size.width = size.height * expectedFaceAspectRatio
-        } else {
-            size.width = imageSize.width * 0.65
-            size.height = size.width / expectedFaceAspectRatio
-        }
-        return CGRect(x: imageSize.width / 2 - size.width / 2, y: imageSize.height / 2 - size.height / 2, width: size.width, height: size.height)
     }
     
     var smoothingBufferSize: Int = 3

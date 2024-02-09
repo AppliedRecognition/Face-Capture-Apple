@@ -18,6 +18,8 @@
 		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
 		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
 		3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD72B72C770008A801D /* NavStackView.swift */; };
+		3BE1A5FC2B761901005E853C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FB2B761900005E853C /* SettingsView.swift */; };
+		3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FD2B762B37005E853C /* Settings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 		3B6CCDD32B72C258008A801D /* IndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexView.swift; sourceTree = "<group>"; };
 		3B6CCDD52B72C766008A801D /* EmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedView.swift; sourceTree = "<group>"; };
 		3B6CCDD72B72C770008A801D /* NavStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavStackView.swift; sourceTree = "<group>"; };
+		3BE1A5FB2B761900005E853C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		3BE1A5FD2B762B37005E853C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +77,8 @@
 				3B6CCDD52B72C766008A801D /* EmbeddedView.swift */,
 				3B6CCDD72B72C770008A801D /* NavStackView.swift */,
 				3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */,
+				3BE1A5FB2B761900005E853C /* SettingsView.swift */,
+				3BE1A5FD2B762B37005E853C /* Settings.swift */,
 			);
 			path = "Face Capture Demo";
 			sourceTree = "<group>";
@@ -163,7 +169,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BE1A5FC2B761901005E853C /* SettingsView.swift in Sources */,
 				3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */,
+				3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */,
 				3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */,
 				3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */,
 				3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */,

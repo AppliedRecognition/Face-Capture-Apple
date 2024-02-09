@@ -12,16 +12,19 @@ struct NavStackView: View {
     
     @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
+    let settings = Settings()
+    let title: String
+    let description: String
     
     var body: some View {
         VStack {
             HStack {
-                Text("This example shows how to run a face capture session in a view pushed to a navigation stack. The session will start as soon as the view is pushed on to the stack. Once the session finishes the view is closed and the result is shown here.")
+                Text(self.description)
                 Spacer()
             }
             HStack {
                 Button {
-                    self.faceCaptureSessionManager.startSession()
+                    self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")
@@ -32,9 +35,9 @@ struct NavStackView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Navigation stack")
+        .navigationTitle(self.title)
         .navigationDestination(for: FaceCaptureSession.self) { session in
-            NavigationStackFaceCaptureSessionView(session: session, navigationPath: self.$navigationPath) { result in
+            NavigationStackFaceCaptureSessionView(session: session, navigationPath: self.$navigationPath, useBackCamera: self.settings.useBackCamera) { result in
                 self.navigationPath.append(result)
             }
         }
