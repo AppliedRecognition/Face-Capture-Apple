@@ -16,13 +16,15 @@ struct EmbeddedView: View {
     let description: String
     @State var promptText: String = ""
     @State var navigationBarTitleDisplayMode: NavigationBarItem.TitleDisplayMode = .large
-    let settings = Settings()
+    var useBackCamera: Bool {
+        Settings().useBackCamera
+    }
     
     var body: some View {
         GeometryReader { geometryReader in
             VStack {
                 if let session = self.faceCaptureSessionManager.session, self.faceCaptureSessionManager.isSessionRunning {
-                    FaceCaptureSessionView(session: session, useBackCamera: self.settings.useBackCamera, showTextPrompts: false, onTextPromptChange: { prompt in
+                    FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, showTextPrompts: false, onTextPromptChange: { prompt in
                         self.promptText = prompt
                         self.navigationBarTitleDisplayMode = .inline
                     }) { result in
@@ -40,6 +42,7 @@ struct EmbeddedView: View {
                         Text(self.description)
                         Spacer()
                     }
+                    Divider().padding(.vertical, 8)
                 }
                 HStack {
                     if self.faceCaptureSessionManager.isSessionRunning {

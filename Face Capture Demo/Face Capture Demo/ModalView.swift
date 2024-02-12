@@ -12,7 +12,9 @@ struct ModalView: View {
     
     @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
-    let settings = Settings()
+    var useBackCamera: Bool {
+        Settings().useBackCamera
+    }
     let title: String
     let description: String
     
@@ -22,6 +24,7 @@ struct ModalView: View {
                 Text(self.description)
                 Spacer()
             }
+            Divider().padding(.vertical, 8)
             HStack {
                 Button {
                     self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
@@ -38,7 +41,7 @@ struct ModalView: View {
         .navigationDestination(for: FaceCaptureSessionResult.self) { result in
             FaceCaptureResultView(result: result)
         }
-        .faceCaptureSessionSheet(sessionManager: self.faceCaptureSessionManager, useBackCamera: self.settings.useBackCamera, onResult: { result in
+        .faceCaptureSessionSheet(sessionManager: self.faceCaptureSessionManager, useBackCamera: self.useBackCamera, onResult: { result in
             self.navigationPath.append(result)
         })
         .navigationTitle(self.title)

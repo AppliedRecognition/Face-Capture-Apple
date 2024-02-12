@@ -11,11 +11,21 @@ import FaceCapture
 struct FaceCaptureResultView: View {
     
     let result: FaceCaptureSessionResult
+    let title: String
+    
+    init(result: FaceCaptureSessionResult) {
+        self.result = result
+        if case .success = result {
+            self.title = "Succeeded"
+        } else {
+            self.title = "Failed"
+        }
+    }
     
     var body: some View {
         VStack {
             switch result {
-            case .success(faceCaptures: let faceCaptures, metadata: _):
+            case .success(faceCaptures: let faceCaptures, metadata: let metadata):
                 if var capture = faceCaptures.first, let faceImage = capture.faceImage {
                     HStack {
                         Image(uiImage: faceImage)
@@ -27,9 +37,16 @@ struct FaceCaptureResultView: View {
                     }
                     .padding(.bottom, 8)
                 }
-                HStack {
-                    Text("Face capture succeeded")
-                    Spacer()
+                ForEach(metadata.sorted(by: { $0.key < $1.key }), id: \.key) { name, value in
+                    Divider()
+                    HStack {
+                        Text(name).font(.headline)
+                        Spacer()
+                    }
+                    HStack {
+                        Text(value.summary).offset(x: 16)
+                        Spacer()
+                    }
                 }
             case .failure(faceCaptures: _, metadata: _, error: let error):
                 HStack {
@@ -40,7 +57,7 @@ struct FaceCaptureResultView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Face capture result")
+        .navigationTitle(self.title)
         .navigationBarTitleDisplayMode(.large)
     }
 }

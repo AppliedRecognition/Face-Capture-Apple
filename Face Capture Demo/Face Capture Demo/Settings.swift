@@ -27,23 +27,24 @@ class Settings: ObservableObject {
             UserDefaults.standard.set(self.enableActiveLiveness, forKey: Keys.enableActiveLiveness)
         }
     }
-    @Published var faceOvalWidth: CGFloat = 60 {
+    @Published var faceOvalWidth: CGFloat {
         didSet {
             UserDefaults.standard.set(self.faceOvalWidth * 0.01, forKey: Keys.faceOvalWidth)
         }
     }
-    @Published var faceOvalHeight: CGFloat = 80 {
+    @Published var faceOvalHeight: CGFloat {
         didSet {
             UserDefaults.standard.set(self.faceOvalHeight * 0.01, forKey: Keys.faceOvalHeight)
         }
     }
     
     init() {
+        let settings = FaceCaptureSessionSettings()
         UserDefaults.standard.register(defaults: [
             Keys.useBackCamera: false,
             Keys.enableActiveLiveness: false,
-            Keys.faceOvalWidth: 0.6,
-            Keys.faceOvalHeight: 0.8
+            Keys.faceOvalWidth: settings.expectedFaceBoundsWidth,
+            Keys.faceOvalHeight: settings.expectedFaceBoundsHeight
         ])
         self.useBackCamera = UserDefaults.standard.bool(forKey: Keys.useBackCamera)
         self.enableActiveLiveness = UserDefaults.standard.bool(forKey: Keys.enableActiveLiveness)

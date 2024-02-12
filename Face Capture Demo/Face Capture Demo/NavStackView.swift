@@ -12,7 +12,9 @@ struct NavStackView: View {
     
     @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
-    let settings = Settings()
+    var useBackCamera: Bool {
+        Settings().useBackCamera
+    }
     let title: String
     let description: String
     
@@ -22,6 +24,7 @@ struct NavStackView: View {
                 Text(self.description)
                 Spacer()
             }
+            Divider().padding(.vertical, 8)
             HStack {
                 Button {
                     self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
@@ -37,7 +40,7 @@ struct NavStackView: View {
         .padding()
         .navigationTitle(self.title)
         .navigationDestination(for: FaceCaptureSession.self) { session in
-            NavigationStackFaceCaptureSessionView(session: session, navigationPath: self.$navigationPath, useBackCamera: self.settings.useBackCamera) { result in
+            NavigationStackFaceCaptureSessionView(session: session, navigationPath: self.$navigationPath, useBackCamera: self.useBackCamera) { result in
                 self.navigationPath.append(result)
             }
         }
