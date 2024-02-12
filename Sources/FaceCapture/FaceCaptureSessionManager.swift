@@ -13,7 +13,11 @@ public class FaceCaptureSessionManager: ObservableObject, FaceCaptureSessionDele
     @Published private(set) public var session: FaceCaptureSession?
     @Published public var isSessionRunning: Bool = false
     
-    public static let shared: FaceCaptureSessionManager = FaceCaptureSessionManager()
+    public var faceTrackingPluginFactories: [(_ settings: FaceCaptureSessionSettings) throws -> any FaceTrackingPlugin] = [
+        { _ in try LivenessDetectionPlugin() },
+        { _ in FPSMeasurementPlugin() }
+    ]
+    public var faceTrackingResultTransformerFactories: [(_ settings: FaceCaptureSessionSettings) throws -> FaceTrackingResultTransformer] = []
     
     public init() {
     }
@@ -24,7 +28,9 @@ public class FaceCaptureSessionManager: ObservableObject, FaceCaptureSessionDele
             session.cancel()
         }
         self.isSessionRunning = true
-        self.session = FaceCaptureSession(faceDetection: faceDetection, settings: settings, delegate: self)
+        let plugins = self.faceTrackingPluginFactories.compactMap { try? $0(settings) }
+        let transformers = self.faceTrackingResultTransformerFactories.compactMap { try? $0(settings) }
+        self.session = FaceCaptureSession(faceDetection: faceDetection, settings: settings, delegate: self, faceTrackingPlugins: plugins, faceTrackingResultTransformers: transformers)
     }
     
     public func cancelSession() {

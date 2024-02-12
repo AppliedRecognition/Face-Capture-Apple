@@ -110,6 +110,30 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
         }
     }
     
+    public func filter(_ predicate: (T) -> Bool) -> [T] {
+        self.lock.withLock {
+            self.buffer.map { $0.element }.filter(predicate)
+        }
+    }
+    
+    public func min(_ predicate: (T, T) -> Bool) -> T? {
+        self.lock.withLock {
+            self.buffer.map { $0.element }.min(by: predicate)
+        }
+    }
+    
+    public func max(_ predicate: (T, T) -> Bool) -> T? {
+        self.lock.withLock {
+            self.buffer.map { $0.element }.max(by: predicate)
+        }
+    }
+    
+    public var oldestElement: T? {
+        self.lock.withLock {
+            self.buffer.min(by: { $0.timestamp < $1.timestamp })?.element
+        }
+    }
+    
     private func removeExpiredElements() {
         let currentTime = CACurrentMediaTime()
         let startCount = self.buffer.count

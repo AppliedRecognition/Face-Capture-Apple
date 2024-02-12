@@ -9,8 +9,8 @@ import Foundation
 
 public enum FaceCaptureSessionResult: Hashable {
     
-    case success(faceCaptures: [FaceCapture], metadata: [String:[UInt64:Encodable]])
-    case failure(faceCaptures: [FaceCapture], metadata: [String:[UInt64:Encodable]], error: Error)
+    case success(faceCaptures: [FaceCapture], metadata: [String:TaskResults])
+    case failure(faceCaptures: [FaceCapture], metadata: [String:TaskResults], error: Error)
     
     public var faceCaptures: [FaceCapture] {
         switch self {
@@ -21,7 +21,7 @@ public enum FaceCaptureSessionResult: Hashable {
         }
     }
     
-    public var metadata: [String:[UInt64:Encodable]] {
+    public var metadata: [String:TaskResults] {
         switch self {
         case .success(faceCaptures: _, metadata: let metadata):
             return metadata

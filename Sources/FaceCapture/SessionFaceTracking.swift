@@ -29,6 +29,7 @@ final class SessionFaceTracking {
     var alignTime: Double?
     var angleHistory: [EulerAngle<Float>] = []
     var hasFaceBeenFixed: Bool = false
+    weak var delegate: SessionFaceTrackingDelegate?
     
     init(faceDetection: FaceDetection, settings: FaceCaptureSessionSettings) {
         self.faceDetection = faceDetection
@@ -42,7 +43,7 @@ final class SessionFaceTracking {
         }
     }
     
-    func trackFace(in imageCapture: FaceCaptureSessionImageInput) throws -> FaceTrackingResult {
+    func trackFace(in imageCapture: FaceCaptureSessionImageInput) async throws -> FaceTrackingResult {
         let imageSize = CGSize(width: imageCapture.image.width, height: imageCapture.image.height)
         let expectedFaceBounds = self.settings.expectedFaceBoundsInSize(imageSize)
         if let face = try self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first {
@@ -95,15 +96,24 @@ final class SessionFaceTracking {
                 if let alignTime = self.alignTime, now-alignTime < self.settings.pauseDuration {
                     result = .paused(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds))
                 } else {
-                    result = .faceAligned(TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!))
-                    self.alignTime = now
-                    self.faces.clear()
-                    if self.settings.faceCaptureCount > 0 && self.settings.availableBearings.count > 1 {
-                        var bearings = Array(self.settings.availableBearings)
-                        bearings.removeAll(where: { $0 == self.requestedBearing })
-                        let rand = Int(arc4random_uniform(UInt32(bearings.count)))
-                        let index = bearings.index(bearings.startIndex, offsetBy: rand)
-                        self.requestedBearing = bearings[index]
+                    let props = TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!)
+                    if let delegate = self.delegate {
+                        result = delegate.transformFaceResult(.faceAligned(props))
+                    } else {
+                        result = .faceCaptured(props)
+                    }
+                    if case .faceCaptured = result {
+                        self.alignTime = now
+                        self.faces.clear()
+                        if self.settings.faceCaptureCount > 0 && self.settings.availableBearings.count > 1 {
+                            var bearings = Array(self.settings.availableBearings)
+                            bearings.removeAll(where: { $0 == self.requestedBearing })
+                            let rand = Int(arc4random_uniform(UInt32(bearings.count)))
+                            let index = bearings.index(bearings.startIndex, offsetBy: rand)
+                            self.requestedBearing = bearings[index]
+                        }
+                    } else {
+                        result = .faceAligned(props)
                     }
                 }
             } else {
@@ -187,4 +197,9 @@ fileprivate class AlignedFace {
     init(_ face: Face) {
         self.face = face
     }
+}
+
+public protocol SessionFaceTrackingDelegate: AnyObject {
+    
+    func transformFaceResult(_ faceTrackingResult: FaceTrackingResult) -> FaceTrackingResult
 }

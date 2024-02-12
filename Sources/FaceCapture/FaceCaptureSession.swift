@@ -13,55 +13,42 @@ import AVFoundation
 public class FaceCaptureSession: ObservableObject, Hashable {
     
     public var faceTrackingResult: AnyPublisher<FaceTrackingResult,Never> {
-        self.faceTrackingResultSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
+        self.faceTrackingResultSubject.share().receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
     @Published private(set) public var result: FaceCaptureSessionResult?
     
     private var faceTrackingResultSubject: PassthroughSubject<FaceTrackingResult,Never> = PassthroughSubject()
     private var input: AsyncStream<FaceCaptureSessionImageInput>.Continuation?
     private var sessionTask: Task<Void,Error>?
-    private var moduleTasks: [String:Task<[UInt64:Encodable],Error>] = [:]
-    private var pluginTasks: [String:Task<any FaceTrackingPluginResult,Error>] = [:]
-    private var plugins: [any FaceTrackingPlugin] = []
+    private var pluginTasks: [String:Task<TaskResults,Error>] = [:]
     private var faceTracking: SessionFaceTracking
-    private var continuations: Array<AsyncStream<FaceTrackingResult>.Continuation> = []
-    private var faceTrackingModules: Array<FaceTrackingModule> = []
+    private var faceTrackingPluginContinuations: Array<AsyncStream<FaceTrackingResult>.Continuation> = []
+    private let faceTrackingPlugins: Array<any FaceTrackingPlugin>
+    private let faceTrackingResultTransformers: Array<FaceTrackingResultTransformer>
     private let id: UUID
     weak var delegate: FaceCaptureSessionDelegate?
     public lazy var settings: FaceCaptureSessionSettings = self.faceTracking.settings
     
-    public convenience init() {
-        self.init(faceDetection: AppleFaceDetection(), settings: FaceCaptureSessionSettings())
-    }
-    
-    public convenience init(settings: FaceCaptureSessionSettings) {
-        self.init(faceDetection: AppleFaceDetection(), settings: settings)
-    }
-    
-    public init(faceDetection: FaceDetection, settings: FaceCaptureSessionSettings, delegate: FaceCaptureSessionDelegate?=nil) {
+    init(
+        faceDetection: FaceDetection=AppleFaceDetection(),
+        settings: FaceCaptureSessionSettings=FaceCaptureSessionSettings(),
+        delegate: FaceCaptureSessionDelegate?=nil,
+        faceTrackingPlugins: [any FaceTrackingPlugin]=[],
+        faceTrackingResultTransformers: [FaceTrackingResultTransformer]=[]
+    ) {
         self.id = UUID()
         self.faceTracking = SessionFaceTracking(faceDetection: faceDetection, settings: settings)
         self.faceTrackingResultSubject.send(.created(self.faceTracking.requestedBearing))
         self.delegate = delegate
-//        if let livenessDetectionPlugin = try? LivenessDetectionPlugin() {
-//            self.plugins.append(livenessDetectionPlugin)
-//        }
-        if let livenessDetection = try? LivenessDetectionModule() {
-            self.faceTrackingModules.append(livenessDetection)
-        }
+        self.faceTrackingPlugins = faceTrackingPlugins
+        self.faceTrackingResultTransformers = faceTrackingResultTransformers
         let input = AsyncStream<FaceCaptureSessionImageInput>(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.input = continuation
         }
-//        self.faceTrackingResult = .created(self.faceTracking.requestedBearing)
         self.faceTrackingResultSubject.send(.created(self.faceTracking.requestedBearing))
         self.faceTracking.reset()
         self.result = nil
-        self.moduleTasks = Dictionary(faceTrackingModules.map { $0.run(inputStream: self.addFaceTrackingStream()) }) { $1 }
-//        let pluginTuples: (String,Task<any FaceTrackingPluginResult,Error>) = self.plugins.map { plugin in
-//            let task = self.runTaskForPlugin(plugin)
-//            return (plugin.name, task)
-//        }
-//        self.pluginTasks = Dictionary(pluginTuples) { $1 }
+        self.pluginTasks = Dictionary(faceTrackingPlugins.map { $0.run(inputStream: self.addFaceTrackingStream()) }) { $1 }
         self.sessionTask = Task {
             var faceCaptures: [FaceCapture] = []
             let result: FaceCaptureSessionResult
@@ -74,7 +61,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                     if inp.time > self.settings.maxDuration {
                         throw "Session expired"
                     }
-                    let faceTrackingResult = try self.faceTracking.trackFace(in: inp)
+                    let faceTrackingResult = try await self.faceTracking.trackFace(in: inp)
 //                    if let serialNumber = faceTrackingResult.serialNumber {
 //                        NSLog("Tracked face in image \(serialNumber)")
 //                    }
@@ -86,11 +73,11 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                             break
                         }
                     }
-                    self.continuations.forEach {
+                    self.faceTrackingPluginContinuations.forEach {
                         $0.yield(faceTrackingResult)
                     }
                 }
-                self.finishModuleTasks()
+                self.finishPluginTasks()
                 if Task.isCancelled || faceCaptures.count < self.settings.faceCaptureCount {
                     self.finishSession()
                     return
@@ -103,7 +90,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                 self.finishSession()
                 result = .success(faceCaptures: faceCaptures, metadata: metadata)
             } catch {
-                self.finishModuleTasks()
+                self.finishPluginTasks()
                 if Task.isCancelled {
                     self.finishSession()
                     return
@@ -146,14 +133,10 @@ public class FaceCaptureSession: ObservableObject, Hashable {
         hasher.combine(self.id)
     }
     
-    private func runTaskForPlugin<T: FaceTrackingPluginResult>(_ plugin: some FaceTrackingPlugin<T>) -> Task<[T],Error> {
-        return plugin.run(inputStream: self.addFaceTrackingStream())
-    }
-    
-    private var metadata: [String: [UInt64:Encodable]] {
+    private var metadata: [String: TaskResults] {
         get async throws {
-            var metadata: [String: [UInt64:any Encodable]] = [:]
-            for (name, task) in self.moduleTasks {
+            var metadata: [String: TaskResults] = [:]
+            for (name, task) in self.pluginTasks {
                 metadata[name] = try await task.value
             }
             return metadata
@@ -162,26 +145,26 @@ public class FaceCaptureSession: ObservableObject, Hashable {
     
     private func addFaceTrackingStream() -> AsyncStream<FaceTrackingResult> {
         return AsyncStream<FaceTrackingResult>(bufferingPolicy: .bufferingNewest(1)) { continuation in
-            self.continuations.append(continuation)
+            self.faceTrackingPluginContinuations.append(continuation)
         }
     }
     
-    private func finishModuleTasks() {
-        while !self.continuations.isEmpty {
-            self.continuations.removeFirst().finish()
+    private func finishPluginTasks() {
+        while !self.faceTrackingPluginContinuations.isEmpty {
+            self.faceTrackingPluginContinuations.removeFirst().finish()
         }
     }
     
     private func finishSession() {
-        self.finishModuleTasks()
+        self.finishPluginTasks()
         self.input?.finish()
         self.input = nil
         self.sessionTask?.cancel()
         self.sessionTask = nil
-        self.moduleTasks.forEach { key, val in
+        self.pluginTasks.forEach { key, val in
             val.cancel()
         }
-        self.moduleTasks.removeAll(keepingCapacity: false)
+        self.pluginTasks.removeAll(keepingCapacity: false)
     }
 }
 
@@ -190,4 +173,23 @@ public protocol FaceCaptureSessionDelegate: AnyObject {
     func faceCaptureSession(_ faceCaptureSession: FaceCaptureSession, didFinishWithResult result: FaceCaptureSessionResult)
     
     func didCancelFaceCaptureSession(_ faceCaptureSession: FaceCaptureSession)
+}
+
+extension FaceCaptureSession: SessionFaceTrackingDelegate {
+    
+    public func transformFaceResult(_ faceTrackingResult: FaceTrackingResult) -> FaceTrackingResult {
+        if self.faceTrackingResultTransformers.isEmpty {
+            if case .faceAligned(let trackedFaceSessionProperties) = faceTrackingResult {
+                return .faceCaptured(trackedFaceSessionProperties)
+            } else {
+                return faceTrackingResult
+            }
+        } else {
+            var result = faceTrackingResult
+            for transformer in self.faceTrackingResultTransformers {
+                result = transformer.transformFaceResult(result)
+            }
+            return result
+        }
+    }
 }

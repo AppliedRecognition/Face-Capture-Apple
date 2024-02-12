@@ -16,6 +16,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
     case faceFixed(TrackedFaceSessionProperties)
     case faceAligned(TrackedFaceSessionProperties)
     case faceMisaligned(TrackedFaceSessionProperties)
+    case faceCaptured(TrackedFaceSessionProperties)
     
     public var input: FaceCaptureSessionImageInput? {
         switch self {
@@ -30,6 +31,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
         case .faceAligned(let props):
             return props.input
         case .faceMisaligned(let props):
+            return props.input
+        case .faceCaptured(let props):
             return props.input
         default:
             return nil
@@ -52,6 +55,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
             return props.requestedBearing
         case .faceMisaligned(let props):
             return props.requestedBearing
+        case .faceCaptured(let props):
+            return props.requestedBearing
         }
     }
     
@@ -64,6 +69,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
         case .faceAligned(let props):
             return props.face
         case .faceMisaligned(let props):
+            return props.face
+        case .faceCaptured(let props):
             return props.face
         default:
             return nil
@@ -80,6 +87,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
             return props.smoothedFace
         case .faceMisaligned(let props):
             return props.smoothedFace
+        case .faceCaptured(let props):
+            return props.smoothedFace
         default:
             return nil
         }
@@ -94,7 +103,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
     }
     
     public var faceCapture: FaceCapture? {
-        if case .faceAligned(let props) = self {
+        if case .faceCaptured(let props) = self {
             return FaceCapture(image: props.input.image, face: props.face, bearing: props.requestedBearing)
         } else {
             return nil
@@ -115,6 +124,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
             return props.expectedFaceBounds
         case .faceMisaligned(let props):
             return props.expectedFaceBounds
+        case .faceCaptured(let props):
+            return props.expectedFaceBounds
         default:
             return nil
         }
@@ -133,6 +144,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
         case .faceAligned(let props):
             return props.input.time
         case .faceMisaligned(let props):
+            return props.input.time
+        case .faceCaptured(let props):
             return props.input.time
         default:
             return nil
@@ -173,6 +186,9 @@ public enum FaceTrackingResult: Hashable, Sendable {
         case .paused(let props):
             let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
             return .paused(updatedProps)
+        case .faceCaptured(let props):
+            let updatedProps = TrackedFaceSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: face!, smoothedFace: smoothedFace!)
+            return .faceCaptured(updatedProps)
         }
     }
 }

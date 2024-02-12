@@ -29,13 +29,18 @@ public struct FaceCaptureSessionViewModifier: ViewModifier {
         content
             .sheet(isPresented: self.$sessionManager.isSessionRunning) {
                 if let session = self.sessionManager.session {
-                    if #available(iOS 14, *) {
+                    ZStack(alignment: .bottom) {
                         FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, textPromptProvider: self.textPromptProvider, onTextPromptChange: self.onTextPromptChange, onResult: self.onResult)
-                            .ignoresSafeArea()
-                    } else {
-                        FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, textPromptProvider: self.textPromptProvider, onTextPromptChange: self.onTextPromptChange, onResult: self.onResult)
-                            .edgesIgnoringSafeArea(.all)
+                        Button {
+                            self.sessionManager.cancelSession()
+                        } label: {
+                            Text("Cancel")
+                        }
+                        .padding(8)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color(UIColor.systemBackground)))
+                        .padding(.bottom, 48)
                     }
+                    .ignoreSafeArea()
                 } else {
                     EmptyView()
                 }
@@ -47,5 +52,23 @@ public extension View {
     
     func faceCaptureSessionSheet(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) -> some View {
         return self.modifier(FaceCaptureSessionViewModifier(sessionManager: sessionManager, useBackCamera: useBackCamera, textPromptProvider: textPromptProvider, onTextPromptChange: onTextPromptChange, onResult: onResult))
+    }
+}
+
+fileprivate struct IgnoreSafeArea: ViewModifier {
+    
+    func body(content: Content) -> some View {
+        if #available(iOS 14, *) {
+            content.ignoresSafeArea()
+        } else {
+            content.edgesIgnoringSafeArea(.all)
+        }
+    }
+}
+
+fileprivate extension View {
+    
+    func ignoreSafeArea() -> some View {
+        self.modifier(IgnoreSafeArea())
     }
 }
