@@ -32,6 +32,7 @@
 		3B6CCDD32B72C258008A801D /* IndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexView.swift; sourceTree = "<group>"; };
 		3B6CCDD52B72C766008A801D /* EmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedView.swift; sourceTree = "<group>"; };
 		3B6CCDD72B72C770008A801D /* NavStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavStackView.swift; sourceTree = "<group>"; };
+		3B8E27D12B7CBBE2009BB2FD /* Face-Capture-Demo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Face-Capture-Demo-Info.plist"; sourceTree = SOURCE_ROOT; };
 		3BE1A5FB2B761900005E853C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3BE1A5FD2B762B37005E853C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,6 +70,7 @@
 		3B37509B2B698D9C000F44BB /* Face Capture Demo */ = {
 			isa = PBXGroup;
 			children = (
+				3B8E27D12B7CBBE2009BB2FD /* Face-Capture-Demo-Info.plist */,
 				3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */,
 				3B37509E2B698D9C000F44BB /* ModalView.swift */,
 				3B3750A02B698DA1000F44BB /* Assets.xcassets */,
@@ -313,10 +315,10 @@
 				DEVELOPMENT_TEAM = CSD8L9EK66;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Face-Capture-Demo-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For face capture";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -344,10 +346,10 @@
 				DEVELOPMENT_TEAM = CSD8L9EK66;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Face-Capture-Demo-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For face capture";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
