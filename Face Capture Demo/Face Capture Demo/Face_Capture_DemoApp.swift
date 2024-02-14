@@ -7,27 +7,40 @@
 
 import SwiftUI
 import FaceCapture
+import VerIDSDKIdentity
 
 @main
 struct Face_Capture_DemoApp: App {
     
     @State var navigationPath = NavigationPath()
-    let sessionManager: FaceCaptureSessionManager
-    
-    init() {
-        self.sessionManager = FaceCaptureSessionManager()
-    }
+    @State var sessionManager: FaceCaptureSessionManager?
+    @State var loadError: String?
     
     var body: some Scene {
         WindowGroup {
-            NavigationStack(path: self.$navigationPath) {
-                IndexView(navigationPath: self.$navigationPath)
-            }
-            .environmentObject(self.sessionManager)
-            .onChange(of: self.navigationPath) { path in
-                if path.isEmpty {
-                    self.sessionManager.cancelSession()
+            if let sessionMgr = self.sessionManager {
+                NavigationStack(path: self.$navigationPath) {
+                    IndexView(navigationPath: self.$navigationPath)
                 }
+                .environmentObject(sessionMgr)
+                .onChange(of: self.navigationPath) { path in
+                    if path.isEmpty {
+                        sessionMgr.cancelSession()
+                    }
+                }
+            } else if let error = self.loadError {
+                Text("Failed to load: \(error)")
+            } else {
+                ProgressView("Loading")
+                    .task {
+                        if self.sessionManager == nil {
+                            do {
+                                self.sessionManager = try await FaceCaptureSessionManager()
+                            } catch {
+                                self.loadError = error.localizedDescription
+                            }
+                        }
+                    }
             }
         }
     }

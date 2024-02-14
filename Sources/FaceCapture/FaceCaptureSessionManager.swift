@@ -6,23 +6,39 @@
 //
 
 import Foundation
+import VerIDSDKIdentity
+import VerIDLicence
 
-@MainActor
 public class FaceCaptureSessionManager: ObservableObject, FaceCaptureSessionDelegate {
     
-    @Published private(set) public var session: FaceCaptureSession?
-    @Published public var isSessionRunning: Bool = false
+    @MainActor @Published private(set) public var session: FaceCaptureSession?
+    @MainActor @Published public var isSessionRunning: Bool = false
     
-    public var faceTrackingPluginFactories: [(_ settings: FaceCaptureSessionSettings) throws -> any FaceTrackingPlugin] = [
+    @MainActor public var faceTrackingPluginFactories: [(_ settings: FaceCaptureSessionSettings) throws -> any FaceTrackingPlugin] = [
         { _ in try LivenessDetectionPlugin() },
         { _ in FPSMeasurementPlugin() }
     ]
-    public var faceTrackingResultTransformerFactories: [(_ settings: FaceCaptureSessionSettings) throws -> FaceTrackingResultTransformer] = []
+    @MainActor public var faceTrackingResultTransformerFactories: [(_ settings: FaceCaptureSessionSettings) throws -> FaceTrackingResultTransformer] = []
     
-    public init() {
+    public convenience init() async throws {
+        let identity = try VerIDIdentity(url: nil, password: nil)
+        try await self.init(identity: identity)
     }
     
-    public func startSession(settings: FaceCaptureSessionSettings=FaceCaptureSessionSettings(), faceDetection: FaceDetection=AppleFaceDetection()) {
+    public convenience init(identityFileURL: URL) async throws {
+        let identity = try VerIDIdentity(url: identityFileURL)
+        try await self.init(identity: identity)
+    }
+    
+    public init(identity: VerIDIdentity) async throws {
+        let licence = try await VerIDLicence(identity: identity)
+        try await licence.checkLicence()
+        Task {
+            await licence.reporting.sendReport(componentIdentifier: Bundle(for: type(of: self)).bundleIdentifier ?? "FaceCapture", componentVersion: Version.string, event: "load")
+        }
+    }
+    
+    @MainActor public func startSession(settings: FaceCaptureSessionSettings=FaceCaptureSessionSettings(), faceDetection: FaceDetection=AppleFaceDetection()) {
         if let session = self.session {
             session.delegate = nil
             session.cancel()
@@ -33,17 +49,17 @@ public class FaceCaptureSessionManager: ObservableObject, FaceCaptureSessionDele
         self.session = FaceCaptureSession(faceDetection: faceDetection, settings: settings, delegate: self, faceTrackingPlugins: plugins, faceTrackingResultTransformers: transformers)
     }
     
-    public func cancelSession() {
+    @MainActor public func cancelSession() {
         self.session?.cancel()
     }
     
     // MARK: - Session delegate
     
-    public func faceCaptureSession(_ faceCaptureSession: FaceCaptureSession, didFinishWithResult result: FaceCaptureSessionResult) {
+    @MainActor public func faceCaptureSession(_ faceCaptureSession: FaceCaptureSession, didFinishWithResult result: FaceCaptureSessionResult) {
         self.isSessionRunning = false
     }
     
-    public func didCancelFaceCaptureSession(_ faceCaptureSession: FaceCaptureSession) {
+    @MainActor public func didCancelFaceCaptureSession(_ faceCaptureSession: FaceCaptureSession) {
         self.session = nil
         self.isSessionRunning = false
     }

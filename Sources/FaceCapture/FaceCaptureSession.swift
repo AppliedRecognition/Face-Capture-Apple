@@ -95,7 +95,6 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                     self.finishSession()
                     return
                 }
-//                let metadata = try? await moduleTask.value
                 if Task.isCancelled {
                     self.finishSession()
                     return

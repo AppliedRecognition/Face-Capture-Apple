@@ -18,6 +18,7 @@
 		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
 		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
 		3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD72B72C770008A801D /* NavStackView.swift */; };
+		3BB31AE72B7C176000572844 /* Ver-ID.identity in Resources */ = {isa = PBXBuildFile; fileRef = 3BB31AE62B7C176000572844 /* Ver-ID.identity */; };
 		3BE1A5FC2B761901005E853C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FB2B761900005E853C /* SettingsView.swift */; };
 		3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FD2B762B37005E853C /* Settings.swift */; };
 /* End PBXBuildFile section */
@@ -33,6 +34,7 @@
 		3B6CCDD52B72C766008A801D /* EmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedView.swift; sourceTree = "<group>"; };
 		3B6CCDD72B72C770008A801D /* NavStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavStackView.swift; sourceTree = "<group>"; };
 		3B8E27D12B7CBBE2009BB2FD /* Face-Capture-Demo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Face-Capture-Demo-Info.plist"; sourceTree = SOURCE_ROOT; };
+		3BB31AE62B7C176000572844 /* Ver-ID.identity */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Ver-ID.identity"; sourceTree = "<group>"; };
 		3BE1A5FB2B761900005E853C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3BE1A5FD2B762B37005E853C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -71,6 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				3B8E27D12B7CBBE2009BB2FD /* Face-Capture-Demo-Info.plist */,
+				3BB31AE62B7C176000572844 /* Ver-ID.identity */,
 				3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */,
 				3B37509E2B698D9C000F44BB /* ModalView.swift */,
 				3B3750A02B698DA1000F44BB /* Assets.xcassets */,
@@ -159,6 +162,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BB31AE72B7C176000572844 /* Ver-ID.identity in Resources */,
 				3B3750A42B698DA1000F44BB /* Preview Assets.xcassets in Resources */,
 				3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */,
 			);

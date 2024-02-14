@@ -14,8 +14,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-//        .package(url: "https://github.com/apple/swift-async-algorithms.git", .upToNextMajor(from: "1.0.0")),
-        .package(url: "https://github.com/AppliedRecognition/Liveness-Detection-Apple.git", revision: "fc33cacc6dca2a19c3e0997c6e768cb509be0788")
+        .package(url: "https://github.com/AppliedRecognition/Liveness-Detection-Apple.git", revision: "fc33cacc6dca2a19c3e0997c6e768cb509be0788"),
+        .package(url: "https://github.com/AppliedRecognition/Ver-ID-Licence-Apple.git", revision: "3880349a180c4405fd56973f71a8fa88b753d3d9")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,8 +23,14 @@ let package = Package(
         .target(
             name: "FaceCapture", 
             dependencies: [
-//                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-                .product(name: "LivenessDetection", package: "Liveness-Detection-Apple")
+                .product(
+                    name: "LivenessDetection",
+                    package: "Liveness-Detection-Apple"
+                ),
+                .product(
+                    name: "VerIDLicence", 
+                    package: "Ver-ID-Licence-Apple"
+                )
             ],
             resources: [
                 .process("Resources")
