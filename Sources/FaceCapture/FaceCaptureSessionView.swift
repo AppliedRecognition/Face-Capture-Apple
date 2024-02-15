@@ -12,7 +12,7 @@ import AVFoundation
 public struct FaceCaptureSessionView: View {
     
     @ObservedObject public var session: FaceCaptureSession
-    @State private var promptText: String = "Preparing face detection" {
+    @State private var promptText: String = NSLocalizedString("Preparing face detection", bundle: .module, comment: "") {
         didSet {
             self.onTextPromptChange?(self.promptText)
         }
@@ -35,25 +35,25 @@ public struct FaceCaptureSessionView: View {
     }
     @State private var last3DHeadAppearanceTime: Double?
     private var angleBearingEvaluation: AngleBearingEvaluation
-    private var textPromptProvider: (FaceTrackingResult) -> String = { faceTrackingResult in
+    private var textPromptProvider: TextPromptProvider = { faceTrackingResult in
         switch faceTrackingResult {
         case .created:
-            return "Preparing face detection"
+            return NSLocalizedString("Preparing face detection", bundle: .module, comment: "")
         case .faceFixed, .faceAligned, .paused:
-            return "Great, hold it"
+            return NSLocalizedString("Great, hold it", bundle: .module, comment: "")
         case .faceMisaligned:
-            return "Follow the arrow"
+            return NSLocalizedString("Turn to follow the arrow", bundle: .module, comment: "")
         default:
-            return "Align your face with the oval"
+            return NSLocalizedString("Align your face with the oval", tableName: "FaceCapture", bundle: .module, comment: "")
         }
     }
     private var headAppearanceInterval: TimeInterval = 3.0
     private var headAppearanceDuration: TimeInterval = 1.8
-    private let onTextPromptChange: ((String) -> Void)?
-    private let onResult: ((FaceCaptureSessionResult) -> Void)?
+    private let onTextPromptChange: OnTextPromptChange?
+    private let onResult: OnFaceCaptureSessionResult?
     public let showTextPrompts: Bool
     
-    public init(session: FaceCaptureSession, useBackCamera: Bool=false, showTextPrompts: Bool=true, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) {
+    public init(session: FaceCaptureSession, useBackCamera: Bool=false, showTextPrompts: Bool=true, textPromptProvider: TextPromptProvider?=nil, onTextPromptChange: OnTextPromptChange?=nil, onResult: OnFaceCaptureSessionResult?=nil) {
         self.session = session
         self.usingFrontCamera = !useBackCamera
         self.showTextPrompts = showTextPrompts
@@ -167,7 +167,7 @@ public struct FaceCaptureSessionView: View {
 //                    .stroke(Color.primary, style: StrokeStyle(lineWidth: self.lineWidth))
                 if self.showTextPrompts {
                     VStack(alignment: .center) {
-                        Text(self.promptText)
+                        Text(verbatim: self.promptText)
                             .padding(.top, 32)
                         Spacer()
                     }
@@ -340,3 +340,7 @@ extension View {
         self.modifier(TaskModifier(action: action))
     }
 }
+
+public typealias TextPromptProvider = (FaceTrackingResult) -> String
+public typealias OnTextPromptChange = (String) -> Void
+public typealias OnFaceCaptureSessionResult = (FaceCaptureSessionResult) -> Void

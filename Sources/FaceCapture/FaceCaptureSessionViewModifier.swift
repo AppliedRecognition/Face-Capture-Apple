@@ -13,11 +13,11 @@ public struct FaceCaptureSessionViewModifier: ViewModifier {
     
     @ObservedObject public var sessionManager: FaceCaptureSessionManager
     let useBackCamera: Bool
-    let textPromptProvider: ((FaceTrackingResult) -> String)?
-    let onTextPromptChange: ((String) -> Void)?
-    let onResult: ((FaceCaptureSessionResult) -> Void)?
+    let textPromptProvider: TextPromptProvider?
+    let onTextPromptChange: OnTextPromptChange?
+    let onResult: OnFaceCaptureSessionResult?
     
-    public init(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) {
+    public init(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: TextPromptProvider?=nil, onTextPromptChange: OnTextPromptChange?=nil, onResult: OnFaceCaptureSessionResult?=nil) {
         self.sessionManager = sessionManager
         self.useBackCamera = useBackCamera
         self.textPromptProvider = textPromptProvider
@@ -34,7 +34,7 @@ public struct FaceCaptureSessionViewModifier: ViewModifier {
                         Button {
                             self.sessionManager.cancelSession()
                         } label: {
-                            Text("Cancel")
+                            Text("Cancel", bundle: .module)
                         }
                         .padding(8)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Color(UIColor.systemBackground)))
@@ -50,7 +50,7 @@ public struct FaceCaptureSessionViewModifier: ViewModifier {
 
 public extension View {
     
-    func faceCaptureSessionSheet(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: ((FaceCaptureSessionResult) -> Void)?=nil) -> some View {
+    func faceCaptureSessionSheet(sessionManager: FaceCaptureSessionManager, useBackCamera: Bool=false, textPromptProvider: TextPromptProvider?=nil, onTextPromptChange: OnTextPromptChange?=nil, onResult: OnFaceCaptureSessionResult?=nil) -> some View {
         return self.modifier(FaceCaptureSessionViewModifier(sessionManager: sessionManager, useBackCamera: useBackCamera, textPromptProvider: textPromptProvider, onTextPromptChange: onTextPromptChange, onResult: onResult))
     }
 }

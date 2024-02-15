@@ -47,6 +47,16 @@ struct NavStackView: View {
         .navigationDestination(for: FaceCaptureSessionResult.self) { result in
             FaceCaptureResultView(result: result)
         }
+        .toolbar {
+            ToolbarItem {
+                NavigationLink {
+                    TipsView()
+                        .navigationTitle("Tips")
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+            }
+        }
         .onReceive(self.faceCaptureSessionManager.$isSessionRunning) { running in
             if running, let session = self.faceCaptureSessionManager.session {
                 self.navigationPath.append(session)

@@ -73,6 +73,16 @@ struct EmbeddedView: View {
             .navigationDestination(for: FaceCaptureSessionResult.self) { sessionResult in
                 FaceCaptureResultView(result: sessionResult)
             }
+            .toolbar {
+                ToolbarItem {
+                    NavigationLink {
+                        TipsView()
+                            .navigationTitle("Tips")
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                    }
+                }
+            }
             .onAppear(perform: {
                 self.promptText = self.title
             })

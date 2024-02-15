@@ -12,7 +12,7 @@ struct IndexView: View {
     @Binding var navigationPath: NavigationPath
     
     var body: some View {
-        _IndexView() { demo in
+        _IndexView { demo in
             self.navigationPath.append(demo)
         }
         .navigationDestination(for: Demo.self) { demo in
@@ -40,6 +40,7 @@ fileprivate struct _IndexView: View {
         }
         .listStyle(.insetGrouped)
         .listRowInsets(.none)
+        .navigationBarTitleDisplayMode(.large)
         .navigationTitle("Face capture")
         .toolbar {
             ToolbarItem {
@@ -79,6 +80,12 @@ fileprivate enum Demo: Hashable {
             return description
         }
     }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(String(describing: self))
+        hasher.combine("\(self.title)")
+        hasher.combine(self.description)
+    }
 }
 
 fileprivate struct DemoSection: View {
@@ -112,10 +119,3 @@ struct IndexView_Previews: PreviewProvider {
         }
     }
 }
-
-//#Preview {
-//    @State var path = NavigationPath()
-//    NavigationStack(path: $path) {
-//        IndexView(navigationPath: $path)
-//    }
-//}

@@ -13,12 +13,12 @@ public struct NavigationStackFaceCaptureSessionView: View {
     public let session: FaceCaptureSession
     @Binding public var navigationPath: NavigationPath
     let useBackCamera: Bool
-    let textPromptProvider: ((FaceTrackingResult) -> String)?
-    let onTextPromptChange: ((String) -> Void)?
-    public let onResult: (FaceCaptureSessionResult) -> Void
-    @State var promptText: String = "Preparing face detection"
+    let textPromptProvider: TextPromptProvider?
+    let onTextPromptChange: OnTextPromptChange?
+    public let onResult: OnFaceCaptureSessionResult
+    @State var promptText: String = Bundle.module.localizedString(forKey: "Preparing face detection", value: nil, table: nil)
     
-    public init(session: FaceCaptureSession, navigationPath: Binding<NavigationPath>, useBackCamera: Bool=false, textPromptProvider: ((FaceTrackingResult) -> String)?=nil, onTextPromptChange: ((String) -> Void)?=nil, onResult: @escaping (FaceCaptureSessionResult) -> Void) {
+    public init(session: FaceCaptureSession, navigationPath: Binding<NavigationPath>, useBackCamera: Bool=false, textPromptProvider: TextPromptProvider?=nil, onTextPromptChange: OnTextPromptChange?=nil, onResult: @escaping OnFaceCaptureSessionResult) {
         self.session = session
         self._navigationPath = navigationPath
         self.useBackCamera = useBackCamera

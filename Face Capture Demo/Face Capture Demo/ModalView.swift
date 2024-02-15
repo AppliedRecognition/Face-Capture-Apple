@@ -44,6 +44,16 @@ struct ModalView: View {
         .faceCaptureSessionSheet(sessionManager: self.faceCaptureSessionManager, useBackCamera: self.useBackCamera, onResult: { result in
             self.navigationPath.append(result)
         })
+        .toolbar {
+            ToolbarItem {
+                NavigationLink {
+                    TipsView()
+                        .navigationTitle("Tips")
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+            }
+        }
         .navigationTitle(self.title)
     }
 }
