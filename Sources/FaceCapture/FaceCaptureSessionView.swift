@@ -49,7 +49,7 @@ public struct FaceCaptureSessionView: View {
     }
     private var headAppearanceInterval: TimeInterval = 3.0
     private var headAppearanceDuration: TimeInterval = 1.8
-    private let onTextPromptChange: OnTextPromptChange?
+    public var onTextPromptChange: OnTextPromptChange?
     private let onResult: OnFaceCaptureSessionResult?
     public let showTextPrompts: Bool
     

@@ -6,74 +6,64 @@
 //
 
 import UIKit
-import AVFoundation
+import SwiftUI
 
-class FaceCaptureSessionViewController: UIViewController {
+public class FaceCaptureSessionViewController: UIHostingController<FaceCaptureSessionView> {
     
-    let cameraControl = CameraControl()
-    private var captureTask: Task<(),Error>?
-    private var cgImageOrientation: CGImagePropertyOrientation = .right
-    private var session: FaceCaptureSession
+    public weak var delegate: FaceCaptureSessionDelegate?
     
-    init(session: FaceCaptureSession) {
-        self.session = session
-        super.init(nibName: nil, bundle: nil)
+    public static func create(settings: FaceCaptureSessionSettings? = nil, useBackCamera: Bool = false, faceDetection: FaceDetection? = nil, onCreate: @escaping (Result<FaceCaptureSessionViewController,Error>) -> Void) {
+        Task {
+            do {
+                let sessionManager = try await FaceCaptureSessionManager()
+                let sessionSettings = settings ?? FaceCaptureSessionSettings()
+                let faceDet = faceDetection ?? AppleFaceDetection()
+                sessionManager.startSession(settings: sessionSettings, faceDetection: faceDet)
+                guard let session = sessionManager.session else {
+                    throw "Failed to start session"
+                }
+                await MainActor.run {
+                    let sessionView = FaceCaptureSessionView(session: session, useBackCamera: useBackCamera)
+                    let viewController = FaceCaptureSessionViewController(rootView: sessionView)
+                    onCreate(.success(viewController))
+                }
+            } catch {
+                await MainActor.run {
+                    onCreate(.failure(error))
+                }
+            }
+        }
     }
     
-    required init?(coder: NSCoder) {
+    public convenience init(session: FaceCaptureSession, useBackCamera: Bool = false) {
+        let sessionView = FaceCaptureSessionView(session: session, useBackCamera: useBackCamera)
+        self.init(rootView: sessionView)
+    }
+    
+    public override init(rootView: FaceCaptureSessionView) {
+        super.init(rootView: rootView)
+        rootView.session.delegate = self
+    }
+    
+    @MainActor required dynamic init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        self.cgImageOrientation = self.view.window?.windowScene?.interfaceOrientation.cgImageOrientation ?? .right
-        self.captureTask = Task {
-            var serialNumber: UInt64 = 0
-            let startTime = CACurrentMediaTime()
-            let stream = try await self.cameraControl.start()
-            for await sample in stream {
-                var image = try sample.convertToImage()
-                let rect = AVMakeRect(aspectRatio: view.bounds.size, insideRect: CGRect(origin: .zero, size: image.size))
-                try image.applyOrientation(self.cgImageOrientation)
-                image.cropToRect(rect)
-                let inputFrame = FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image)
-                self.session.submitImageInput(inputFrame)
-                serialNumber += 1
-            }
-        }
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
+    public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.captureTask?.cancel()
-        self.captureTask = nil
-        Task {
-            await self.cameraControl.stop()
+        if self.rootView.session.result == nil {
+            self.rootView.session.cancel()
         }
     }
+}
+
+extension FaceCaptureSessionViewController: FaceCaptureSessionDelegate {
     
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animateAlongsideTransition(in: self.view, animation: nil, completion: { context in
-            if !context.isCancelled, let orientation = self.view.window?.windowScene?.interfaceOrientation.cgImageOrientation {
-                self.cgImageOrientation = orientation
-            }
-        })
+    public func faceCaptureSession(_ faceCaptureSession: FaceCaptureSession, didFinishWithResult result: FaceCaptureSessionResult) {
+        self.delegate?.faceCaptureSession(faceCaptureSession, didFinishWithResult: result)
     }
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    
+    public func didCancelFaceCaptureSession(_ faceCaptureSession: FaceCaptureSession) {
+        self.delegate?.didCancelFaceCaptureSession(faceCaptureSession)
     }
-    */
-
 }
