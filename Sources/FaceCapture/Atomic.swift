@@ -9,12 +9,12 @@
 import Foundation
 
 @propertyWrapper
-public struct Atomic<T> {
+struct Atomic<T> {
     
     private let lock = NSLock()
     private var value: T
     
-    public var wrappedValue: T {
+    var wrappedValue: T {
         get {
             let val: T
             self.lock.lock()
@@ -29,7 +29,7 @@ public struct Atomic<T> {
         }
     }
     
-    public init(wrappedValue: T) {
+    init(wrappedValue: T) {
         self.value = wrappedValue
     }
 }

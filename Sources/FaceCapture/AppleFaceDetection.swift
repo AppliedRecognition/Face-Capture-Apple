@@ -7,13 +7,20 @@
 
 import Foundation
 import Vision
+import VerIDCommonTypes
 
+/// ``FaceDetection`` protocol implementation using Apple's `Vision` framework
+/// - Since: 1.0.0
 public class AppleFaceDetection: FaceDetection {
     
-    public init() {
-        
-    }
+    public init() {}
     
+    /// Detect a face in image
+    /// - Parameters:
+    ///   - image: Image in which to detect the face
+    ///   - limit: Maximum number of faces to detect
+    /// - Returns: Array of detected faces
+    /// - Since: 1.0.0
     public func detectFacesInImage(_ image: Image, limit: Int=1) throws -> [Face] {
         let cgImage = try image.convertToCGImage()
         let handler = VNImageRequestHandler(cgImage: cgImage)
@@ -37,7 +44,7 @@ public class AppleFaceDetection: FaceDetection {
                 return nil
             }
             let angle = EulerAngle<Float>(yaw: Float(Measurement(value: yaw.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), pitch: Float(Measurement(value: pitch.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), roll: Float(Measurement(value: roll.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value))
-            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize))
+            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize) ?? [])
         }
         return faces.sorted()
     }
@@ -75,7 +82,7 @@ public class AppleFaceDetection: FaceDetection {
                 return nil
             }
             let angle = EulerAngle<Float>(yaw: Float(Measurement(value: yaw.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), pitch: Float(Measurement(value: pitch.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), roll: Float(Measurement(value: roll.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value))
-            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize))
+            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize) ?? [])
         }
         return faces.sorted()
     }

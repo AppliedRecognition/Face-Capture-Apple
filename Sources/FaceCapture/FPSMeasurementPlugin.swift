@@ -20,7 +20,7 @@ class FPSMeasurementPlugin: FaceTrackingPlugin {
     
     func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> FPSMeasurement {
         guard let time = faceTrackingResult.time else {
-            throw "Attempted to process invalid face tracking result"
+            throw FaceCaptureError.invalidFaceTrackingResult
         }
         self.times.append(time)
         let oneSecAgo = time - 1.0

@@ -7,12 +7,27 @@
 
 import Foundation
 
+/// Face capture session result
+/// - Since: 1.0.0
 public enum FaceCaptureSessionResult: Hashable {
     
-    case success(faceCaptures: [FaceCapture], metadata: [String:TaskResults])
-    case failure(faceCaptures: [FaceCapture], metadata: [String:TaskResults], error: Error)
+    /// Session succeeded
+    /// - Parameters:
+    ///   - faceCaptures: Face captures including the image and detected face
+    ///   - metadata: Metadata collected by the session's face tracking plugins
+    /// - Since: 1.0.0
+    case success(faceCaptures: [CapturedFace], metadata: [String:TaskResults])
+    /// Session failed
+    /// - Parameters:
+    ///   - faceCaptures: Face captures including the image and detected face
+    ///   - metadata: Metadata collected by the session's face tracking plugins
+    ///   - error: Error that caused the session to fail
+    /// - Since: 1.0.0
+    case failure(faceCaptures: [CapturedFace], metadata: [String:TaskResults], error: Error)
     
-    public var faceCaptures: [FaceCapture] {
+    /// Face captures collected in the session. Each face capture contains an image and the detected face.
+    /// - Since: 1.0.0
+    public var faceCaptures: [CapturedFace] {
         switch self {
         case .success(faceCaptures: let captures, metadata: _):
             return captures
@@ -21,6 +36,10 @@ public enum FaceCaptureSessionResult: Hashable {
         }
     }
     
+    /// Metadata collected by the session's face tracking plugins
+    ///
+    /// The metadata is a dictionary where each entry corresponds to a face tracking plugin. Entries are keyed by human-readable plugin name. The value is a ``TaskResults`` struct with a text summary of the plugin results and an array of plugin results that corresponds to each frame the plugin processed.
+    /// - Since: 1.0.0
     public var metadata: [String:TaskResults] {
         switch self {
         case .success(faceCaptures: _, metadata: let metadata):
@@ -30,6 +49,7 @@ public enum FaceCaptureSessionResult: Hashable {
         }
     }
     
+    /// Equatable implementation
     public static func == (lhs: FaceCaptureSessionResult, rhs: FaceCaptureSessionResult) -> Bool {
         if case .success(let lhsFaceCaptures, _) = lhs, case .success(let rhsFaceCaptures, _) = rhs {
             return lhsFaceCaptures.elementsEqual(rhsFaceCaptures, by: ==)
@@ -40,6 +60,7 @@ public enum FaceCaptureSessionResult: Hashable {
         }
     }
     
+    /// Hashable implementation
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.faceCaptures)
         if case .failure(_, _, let error) = self {

@@ -8,7 +8,7 @@
 import Foundation
 import QuartzCore
 
-public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
+class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     
     private var buffer: [(element: T, timestamp: TimeInterval)] = []
     private let duration: TimeInterval
@@ -16,13 +16,13 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     private var currentIndex: Int = 0
     private(set) public var hasRemovedElements: Bool = false
     
-    public typealias Element = T
+    typealias Element = T
     
-    public init(duration: TimeInterval) {
+    init(duration: TimeInterval) {
         self.duration = duration
     }
     
-    public func next() -> T? {
+    func next() -> T? {
         self.lock.withLock {
             guard self.currentIndex < self.buffer.count else {
                 return nil
@@ -34,7 +34,7 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
         }
     }
     
-    public func append(_ element: T) {
+    func append(_ element: T) {
         let timestamp = CACurrentMediaTime()
         self.lock.withLock {
             self.removeExpiredElements()
@@ -43,7 +43,7 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     }
     
     @discardableResult
-    public func removeFirst() -> T? {
+    func removeFirst() -> T? {
         self.lock.withLock {
             guard !self.buffer.isEmpty else {
                 return nil
@@ -52,7 +52,7 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
         }
     }
     
-    public subscript(index: Int) -> T? {
+    subscript(index: Int) -> T? {
         self.lock.withLock {
             guard index > 0 && index < self.buffer.count else {
                 return nil
@@ -61,74 +61,74 @@ public class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
         }
     }
     
-    public var first: T? {
+    var first: T? {
         self.lock.withLock {
             self.buffer.first?.element
         }
     }
     
-    public var last: T? {
+    var last: T? {
         self.lock.withLock {
             self.buffer.last?.element
         }
     }
     
-    public var count: Int {
+    var count: Int {
         self.lock.withLock {
             self.buffer.count
         }
     }
     
-    public func clear() {
+    func clear() {
         self.lock.withLock {
             self.hasRemovedElements = false
             self.buffer.removeAll()
         }
     }
     
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         self.lock.withLock {
             self.buffer.isEmpty
         }
     }
     
-    public func allSatisfy(_ predicate: (T) -> Bool) -> Bool {
+    func allSatisfy(_ predicate: (T) -> Bool) -> Bool {
         self.lock.withLock {
             self.buffer.map({ $0.element }).allSatisfy(predicate)
         }
     }
     
-    public func suffix(_ maxLength: Int) -> [T] {
+    func suffix(_ maxLength: Int) -> [T] {
         self.lock.withLock {
             self.buffer.map({ $0.element }).suffix(maxLength)
         }
     }
     
-    public var oldestElementTimestamp: Double? {
+    var oldestElementTimestamp: Double? {
         self.lock.withLock {
             self.buffer.first?.timestamp
         }
     }
     
-    public func filter(_ predicate: (T) -> Bool) -> [T] {
+    func filter(_ predicate: (T) -> Bool) -> [T] {
         self.lock.withLock {
             self.buffer.map { $0.element }.filter(predicate)
         }
     }
     
-    public func min(_ predicate: (T, T) -> Bool) -> T? {
+    func min(_ predicate: (T, T) -> Bool) -> T? {
         self.lock.withLock {
             self.buffer.map { $0.element }.min(by: predicate)
         }
     }
     
-    public func max(_ predicate: (T, T) -> Bool) -> T? {
+    func max(_ predicate: (T, T) -> Bool) -> T? {
         self.lock.withLock {
             self.buffer.map { $0.element }.max(by: predicate)
         }
     }
     
-    public var oldestElement: T? {
+    var oldestElement: T? {
         self.lock.withLock {
             self.buffer.min(by: { $0.timestamp < $1.timestamp })?.element
         }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import VerIDCommonTypes
 
 public enum FaceTrackingResult: Hashable, Sendable {
     
@@ -102,9 +103,9 @@ public enum FaceTrackingResult: Hashable, Sendable {
         }
     }
     
-    public var faceCapture: FaceCapture? {
+    public var faceCapture: CapturedFace? {
         if case .faceCaptured(let props) = self {
-            return FaceCapture(image: props.input.image, face: props.face, bearing: props.requestedBearing)
+            return CapturedFace(image: props.input.image, face: props.face, bearing: props.requestedBearing)
         } else {
             return nil
         }

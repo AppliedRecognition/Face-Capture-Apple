@@ -7,16 +7,17 @@
 //
 
 import UIKit
+import VerIDCommonTypes
 
-open class AngleBearingEvaluation: NSObject {
+class AngleBearingEvaluation: NSObject {
     
-    public let sessionSettings: FaceCaptureSessionSettings
+    let sessionSettings: FaceCaptureSessionSettings
 
-    public init(sessionSettings: FaceCaptureSessionSettings) {
+    init(sessionSettings: FaceCaptureSessionSettings) {
         self.sessionSettings = sessionSettings
     }
     
-    public func angle(forBearing bearing: Bearing) -> EulerAngle<Float> {
+    func angle(forBearing bearing: Bearing) -> EulerAngle<Float> {
         let pitchDistance = self.thresholdAngle(forAxis: .pitch)
         let yawDistance = self.thresholdAngle(forAxis: .yaw)
         var angle = EulerAngle<Float>()
@@ -45,7 +46,7 @@ open class AngleBearingEvaluation: NSObject {
     ///   - angle: Angle to evaluate against the bearing
     ///   - bearing: Bearing the angle should match
     /// - Returns: `true` if the angle can be considered to be matching the bearing
-    open func angle(_ angle: EulerAngle<Float>, matchesBearing bearing: Bearing) -> Bool {
+    func angle(_ angle: EulerAngle<Float>, matchesBearing bearing: Bearing) -> Bool {
         let minAngle = self.minAngle(forBearing: bearing)
         let maxAngle = self.maxAngle(forBearing: bearing)
         return angle.pitch > minAngle.pitch && angle.pitch < maxAngle.pitch && angle.yaw > minAngle.yaw && angle.yaw < maxAngle.yaw
@@ -58,7 +59,7 @@ open class AngleBearingEvaluation: NSObject {
     ///   - from: Angle from which to calculate the offset to the bearing
     ///   - bearing: Bearing to which the offset should be calculated
     /// - Returns: Angle that represents the difference (offset) between the given angle to the bearing angle
-    open func offsetFromAngle(_ from: EulerAngle<Float>, toBearing bearing: Bearing) -> EulerAngle<Float> {
+    func offsetFromAngle(_ from: EulerAngle<Float>, toBearing bearing: Bearing) -> EulerAngle<Float> {
         var result = EulerAngle<Float>()
         if !self.angle(from, matchesBearing: bearing) {
             let bearingAngle = self.angle(forBearing: bearing)
@@ -77,7 +78,7 @@ open class AngleBearingEvaluation: NSObject {
         return hypot(pt.x-centre.x, pt.y-centre.y) <= CGFloat(radius)
     }
     
-    open func angle(_ angle: EulerAngle<Float>, isBetweenBearing fromBearing: Bearing, and toBearing: Bearing) -> Bool {
+    func angle(_ angle: EulerAngle<Float>, isBetweenBearing fromBearing: Bearing, and toBearing: Bearing) -> Bool {
         if self.angle(angle, matchesBearing: fromBearing) || self.angle(angle, matchesBearing: toBearing) {
             return true
         }
@@ -168,6 +169,6 @@ open class AngleBearingEvaluation: NSObject {
     }
 }
 
-@objc public enum Axis: Int {
+enum Axis: Int {
     case pitch, yaw
 }

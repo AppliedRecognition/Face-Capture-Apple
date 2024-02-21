@@ -23,18 +23,19 @@ actor CameraControl {
         return output
     }()
     private let cameraDelegate: CameraControlDelegate = CameraControlDelegate()
+    lazy var cameraPosition: AVCaptureDevice.Position = self.captureDevice.position
     
     init() {
-        self.init(useFrontCamera: true)
+        self.init(cameraPosition: .front)
     }
     
-    init(useFrontCamera: Bool) {
-        self.captureDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, for: AVMediaType.video, position: useFrontCamera ? .front : .back)
+    init(cameraPosition: AVCaptureDevice.Position) {
+        self.captureDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, for: AVMediaType.video, position: cameraPosition)
     }
     
     func start() async throws -> AsyncStream<CMSampleBuffer> {
         if self.cameraDelegate.continuation != nil || self.captureSession.isRunning {
-            throw "Another session in progress"
+            throw FaceCaptureError.anotherCaptureSessionInProgress
         }
         try await self.requestCameraPermission()
         let videoDeviceInput = try AVCaptureDeviceInput(device: self.captureDevice)

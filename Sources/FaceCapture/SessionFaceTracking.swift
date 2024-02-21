@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import Accelerate
+import VerIDCommonTypes
 
 final class SessionFaceTracking {
     
@@ -77,7 +78,7 @@ final class SessionFaceTracking {
 ////                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
 //                    }
                     if movedOpposite {
-                        throw "Moved opposite"
+                        throw FaceCaptureError.activeLivenessCheckFailed(.faceMovedOpposite)
 //                        throw FaceCaptureError.activeLivenessError(reason: .movedOpposite(bearing: requestedBearing))
                     }
                 }
@@ -122,7 +123,7 @@ final class SessionFaceTracking {
             return result
         }
         if self.faces.isEmpty && self.hasFaceBeenFixed {
-            throw "Face lost"
+            throw FaceCaptureError.activeLivenessCheckFailed(.faceLost)
 //            throw FaceCaptureError.facePresenceError(reason: .faceLost(bearing: self.requestedBearing))
         }
         if !self.faces.isEmpty {
@@ -162,9 +163,9 @@ final class SessionFaceTracking {
         return Face(bounds: bounds, angle: angle, quality: quality, landmarks: landmarks)
     }
     
-    private func meanLandmarks(from landmarks: [[CGPoint]]) -> [CGPoint]? {
+    private func meanLandmarks(from landmarks: [[CGPoint]]) -> [CGPoint] {
         if landmarks.isEmpty {
-            return nil
+            return []
         }
         let landmarkCount = UInt(landmarks.first!.count)
         let xs = landmarks.map { $0.map { $0.x }}.reduce([], +).map { Double($0) }
@@ -199,7 +200,7 @@ fileprivate class AlignedFace {
     }
 }
 
-public protocol SessionFaceTrackingDelegate: AnyObject {
+protocol SessionFaceTrackingDelegate: AnyObject {
     
     func transformFaceResult(_ faceTrackingResult: FaceTrackingResult) -> FaceTrackingResult
 }

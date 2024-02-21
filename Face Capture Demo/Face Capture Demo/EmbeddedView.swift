@@ -10,12 +10,13 @@ import FaceCapture
 
 struct EmbeddedView: View {
     
-    @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
     let title: String
     let description: String
     @State var promptText: String = ""
     @State var navigationBarTitleDisplayMode: NavigationBarItem.TitleDisplayMode = .large
+    @State var isCapturing: Bool = false
+    @State var result: FaceCaptureSessionResult?
     var useBackCamera: Bool {
         Settings().useBackCamera
     }
@@ -23,19 +24,11 @@ struct EmbeddedView: View {
     var body: some View {
         GeometryReader { geometryReader in
             VStack {
-                if let session = self.faceCaptureSessionManager.session, self.faceCaptureSessionManager.isSessionRunning {
-                    FaceCaptureSessionView(session: session, useBackCamera: self.useBackCamera, showTextPrompts: false, onTextPromptChange: { prompt in
-                        self.promptText = prompt
-                        self.navigationBarTitleDisplayMode = .inline
-                    }) { result in
-                        self.promptText = self.title
-                        self.navigationBarTitleDisplayMode = .large
-                        self.navigationPath.append(result)
-                    }
+                if self.isCapturing {
+                    FaceCaptureView(configuration: FaceCaptureViewConfiguration(useBackCamera: self.useBackCamera, textPrompt: self.$promptText, showTextPrompts: false, showCancelButton: false), isCapturing: self.$isCapturing, result: self.$result)
                         .frame(height: geometryReader.size.height * 0.66)
                         .background {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.gray)
+                            RoundedRectangle(cornerRadius: 16).fill(Color.gray)
                         }
                 } else {
                     HStack {
@@ -45,18 +38,16 @@ struct EmbeddedView: View {
                     Divider().padding(.vertical, 8)
                 }
                 HStack {
-                    if self.faceCaptureSessionManager.isSessionRunning {
+                    if self.isCapturing {
                         Button {
-                            self.faceCaptureSessionManager.cancelSession()
-                            self.navigationBarTitleDisplayMode = .large
-                            self.promptText = self.title
+                            self.isCapturing = false
                         } label: {
                             Image(systemName: "hand.raised.fill")
                             Text("Cancel capture")
                         }
                     } else {
                         Button {
-                            self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
+                            self.isCapturing = true
                         } label: {
                             Image(systemName: "camera.fill")
                             Text("Start capture")
@@ -70,9 +61,6 @@ struct EmbeddedView: View {
             .padding()
             .navigationTitle(self.promptText)
             .navigationBarTitleDisplayMode(self.navigationBarTitleDisplayMode)
-            .navigationDestination(for: FaceCaptureSessionResult.self) { sessionResult in
-                FaceCaptureResultView(result: sessionResult)
-            }
             .toolbar {
                 ToolbarItem {
                     NavigationLink {
@@ -83,9 +71,22 @@ struct EmbeddedView: View {
                     }
                 }
             }
-            .onAppear(perform: {
+            .onAppear {
                 self.promptText = self.title
-            })
+            }
+            .onChange(of: self.result) { result in
+                if let result = result {
+                    self.navigationPath.append(result)
+                }
+            }
+            .onChange(of: self.isCapturing) { capturing in
+                if capturing {
+                    self.navigationBarTitleDisplayMode = .inline
+                } else {
+                    self.navigationBarTitleDisplayMode = .large
+                    self.promptText = self.title
+                }
+            }
         }
     }
 }

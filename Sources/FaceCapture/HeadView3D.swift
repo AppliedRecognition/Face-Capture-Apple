@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import SceneKit
 import SwiftUI
+import VerIDCommonTypes
 
 struct HeadView3D: UIViewRepresentable {
     
@@ -28,9 +29,9 @@ struct HeadView3D: UIViewRepresentable {
     }
 }
 
-public class HeadUIView3D: SCNView {
+class HeadUIView3D: SCNView {
     
-    public var headColor: UIColor = .gray {
+    var headColor: UIColor = .gray {
         didSet {
             self.headNode.geometry?.materials.forEach { material in
                 material.diffuse.contents = self.headColor
@@ -40,7 +41,7 @@ public class HeadUIView3D: SCNView {
     
     var isAnimating: Bool = false
     
-    public var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init()) {
+    var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init()) {
         didSet {
             self.camera.fieldOfView = CGFloat(atan2(self.headNode.boundingSphere.radius*2.2, self.cameraNode.position.z) / .pi * 180)
             if self.isAnimating {
@@ -73,12 +74,12 @@ public class HeadUIView3D: SCNView {
     private var cameraNode: SCNNode!
     private var camera: SCNCamera!
     
-    public override init(frame: CGRect) {
+    override init(frame: CGRect) {
         super.init(frame: frame, options: nil)
         self.setup()
     }
     
-    public convenience init() {
+    convenience init() {
         self.init(frame: CGRect(origin: .zero, size: CGSize(width: 100, height: 100)))
     }
     
@@ -122,11 +123,11 @@ public class HeadUIView3D: SCNView {
 
 extension HeadUIView3D: CAAnimationDelegate {
     
-    public func animationDidStart(_ anim: CAAnimation) {
+    func animationDidStart(_ anim: CAAnimation) {
         self.isAnimating = true
     }
     
-    public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         self.isAnimating = false
     }
 }

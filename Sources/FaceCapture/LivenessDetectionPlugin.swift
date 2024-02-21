@@ -19,7 +19,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
     
     init() throws {
         guard let url = Bundle.module.url(forResource: "ARC_PSD-001_1.1.122_bst_yl80201_NMS_ult201_cml70", withExtension: "mlmodelc") else {
-            throw "ARC_PSD-001_1.1.122_bst_yl80201_NMS_ult201_cml70 model not found in resource bundle"
+            throw FaceCaptureError.resourceBundleMissingFile("ARC_PSD-001_1.1.122_bst_yl80201_NMS_ult201_cml70")
         }
         let spoofDetector = try SpoofDeviceDetector(compiledModelURL: url, identifier: "Spoof device detector")
         self.spoofDetection = SpoofDetection(spoofDetector)
@@ -39,7 +39,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
     
     func checkFailureCount() throws {
         if self.failureCount > self.maxPositiveFrameCount {
-            throw "Failed passive liveness test"
+            throw FaceCaptureError.passiveLivenessCheckFailed("Spoof device detector failed on \(self.failureCount) input frames")
         }
     }
     

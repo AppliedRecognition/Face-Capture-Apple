@@ -7,6 +7,7 @@
 
 import Foundation
 import ImageIO
+import VerIDCommonTypes
 
 public struct FaceCaptureSessionImageInput: Hashable {
     

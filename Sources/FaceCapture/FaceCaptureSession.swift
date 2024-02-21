@@ -9,13 +9,21 @@ import Foundation
 import Combine
 import SwiftUI
 import AVFoundation
+import VerIDCommonTypes
 
+/// Face capture session
+/// - Since: 1.0.0
 public class FaceCaptureSession: ObservableObject, Hashable {
     
+    /// Face tracking result publisher
+    /// - Since: 1.0.0
     public var faceTrackingResult: AnyPublisher<FaceTrackingResult,Never> {
         self.faceTrackingResultSubject.share().receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
+    /// Face capture session result
+    /// - Since: 1.0.0
     @Published private(set) public var result: FaceCaptureSessionResult?
+    @Published private(set) public var isCapturing: Bool = true
     
     private var faceTrackingResultSubject: PassthroughSubject<FaceTrackingResult,Never> = PassthroughSubject()
     private var input: AsyncStream<FaceCaptureSessionImageInput>.Continuation?
@@ -25,23 +33,20 @@ public class FaceCaptureSession: ObservableObject, Hashable {
     private var faceTrackingPluginContinuations: Array<AsyncStream<FaceTrackingResult>.Continuation> = []
     private let faceTrackingPlugins: Array<any FaceTrackingPlugin>
     private let faceTrackingResultTransformers: Array<FaceTrackingResultTransformer>
-    private let id: UUID
-    weak var delegate: FaceCaptureSessionDelegate?
+    public let id: UUID
+    /// Session settings
+    /// - Since: 1.0.0
     public lazy var settings: FaceCaptureSessionSettings = self.faceTracking.settings
     
-    init(
-        faceDetection: FaceDetection=AppleFaceDetection(),
-        settings: FaceCaptureSessionSettings=FaceCaptureSessionSettings(),
-        delegate: FaceCaptureSessionDelegate?=nil,
-        faceTrackingPlugins: [any FaceTrackingPlugin]=[],
-        faceTrackingResultTransformers: [FaceTrackingResultTransformer]=[]
+    public init(
+        settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings(),
+        sessionModuleFactories: FaceCaptureSessionModuleFactories = .default
     ) {
         self.id = UUID()
-        self.faceTracking = SessionFaceTracking(faceDetection: faceDetection, settings: settings)
+        self.faceTracking = SessionFaceTracking(faceDetection: sessionModuleFactories.createFaceDetection(), settings: settings)
+        self.faceTrackingResultTransformers = sessionModuleFactories.createFaceTrackingResultTransformers()
+        self.faceTrackingPlugins = sessionModuleFactories.createFaceTrackingPlugins()
         self.faceTrackingResultSubject.send(.created(self.faceTracking.requestedBearing))
-        self.delegate = delegate
-        self.faceTrackingPlugins = faceTrackingPlugins
-        self.faceTrackingResultTransformers = faceTrackingResultTransformers
         let input = AsyncStream<FaceCaptureSessionImageInput>(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.input = continuation
         }
@@ -50,7 +55,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
         self.result = nil
         self.pluginTasks = Dictionary(faceTrackingPlugins.map { $0.run(inputStream: self.addFaceTrackingStream()) }) { $1 }
         self.sessionTask = Task {
-            var faceCaptures: [FaceCapture] = []
+            var capturedFaces: [CapturedFace] = []
             let result: FaceCaptureSessionResult
             do {
                 for await inp in input {
@@ -59,7 +64,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                         return
                     }
                     if inp.time > self.settings.maxDuration {
-                        throw "Session expired"
+                        throw FaceCaptureError.sessionTimedOut
                     }
                     let faceTrackingResult = try await self.faceTracking.trackFace(in: inp)
 //                    if let serialNumber = faceTrackingResult.serialNumber {
@@ -68,8 +73,8 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                     self.faceTrackingResultSubject.send(faceTrackingResult)
 //                    NSLog("Tracked face in frame %ld at %.02f: \(faceTrackingResult)", inp.serialNumber, inp.time)
                     if let capture = faceTrackingResult.faceCapture {
-                        faceCaptures.append(capture)
-                        if faceCaptures.count >= self.settings.faceCaptureCount {
+                        capturedFaces.append(capture)
+                        if capturedFaces.count >= self.settings.faceCaptureCount {
                             break
                         }
                     }
@@ -78,7 +83,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                     }
                 }
                 self.finishPluginTasks()
-                if Task.isCancelled || faceCaptures.count < self.settings.faceCaptureCount {
+                if Task.isCancelled || capturedFaces.count < self.settings.faceCaptureCount {
                     self.finishSession()
                     return
                 }
@@ -88,7 +93,7 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                     return
                 }
                 self.finishSession()
-                result = .success(faceCaptures: faceCaptures, metadata: metadata)
+                result = .success(faceCaptures: capturedFaces, metadata: metadata)
             } catch {
                 self.finishPluginTasks()
                 if Task.isCancelled {
@@ -101,33 +106,54 @@ public class FaceCaptureSession: ObservableObject, Hashable {
                 }
                 let metadata = try? await self.metadata
                 self.finishSession()
-                result = .failure(faceCaptures: faceCaptures, metadata: metadata ?? [:], error: error)
+                result = .failure(faceCaptures: capturedFaces, metadata: metadata ?? [:], error: error)
             }
             await MainActor.run {
                 self.result = result
-                self.delegate?.faceCaptureSession(self, didFinishWithResult: result)
+                self.isCapturing = false
+            }
+        }
+        Task {
+            if await !FaceCapture.default.isLoaded {
+                do {
+                    try await FaceCapture.default.load()
+                } catch {
+                    self.finishSession()
+                    self.result = .failure(faceCaptures: [], metadata: [:], error: "Face capture library not loaded")
+                    self.isCapturing = false
+                }
             }
         }
     }
     
+    /// Cancel the session
+    /// - Since: 1.0.0
     public func cancel() {
         Task {
             await MainActor.run {
                 self.result = nil
-                self.delegate?.didCancelFaceCaptureSession(self)
+                self.isCapturing = false
             }
             self.finishSession()
         }
     }
     
+    /// Submit image input to the session
+    ///
+    /// Once a session is created it expects to have input images sumitted to it. This is handled by session views like ``FaceCaptureSessionView``.
+    ///
+    /// - Parameter imageInput: Image input
+    /// - Since: 1.0.0
     public func submitImageInput(_ imageInput: FaceCaptureSessionImageInput) {
         self.input?.yield(imageInput)
     }
     
+    /// Equatable implementation
     public static func == (lhs: FaceCaptureSession, rhs: FaceCaptureSession) -> Bool {
         lhs.id == rhs.id
     }
     
+    /// Hashable implementation
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }
@@ -176,7 +202,7 @@ public protocol FaceCaptureSessionDelegate: AnyObject {
 
 extension FaceCaptureSession: SessionFaceTrackingDelegate {
     
-    public func transformFaceResult(_ faceTrackingResult: FaceTrackingResult) -> FaceTrackingResult {
+    func transformFaceResult(_ faceTrackingResult: FaceTrackingResult) -> FaceTrackingResult {
         if self.faceTrackingResultTransformers.isEmpty {
             if case .faceAligned(let trackedFaceSessionProperties) = faceTrackingResult {
                 return .faceCaptured(trackedFaceSessionProperties)
@@ -191,4 +217,15 @@ extension FaceCaptureSession: SessionFaceTrackingDelegate {
             return result
         }
     }
+}
+
+public struct FaceCaptureSessionModuleFactories {
+    
+    public let createFaceDetection: () -> FaceDetection
+    public let createFaceTrackingPlugins: () -> [any FaceTrackingPlugin]
+    public let createFaceTrackingResultTransformers: () -> [FaceTrackingResultTransformer]
+    
+    public static let `default`: FaceCaptureSessionModuleFactories = {
+        return .init(createFaceDetection: { AppleFaceDetection() }, createFaceTrackingPlugins: { [try? LivenessDetectionPlugin(), try? FPSMeasurementPlugin()].compactMap { $0 as! any FaceTrackingPlugin } }, createFaceTrackingResultTransformers: { [] })
+    }()
 }

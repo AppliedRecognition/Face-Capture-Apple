@@ -10,7 +10,6 @@ import FaceCapture
 
 struct NavStackView: View {
     
-    @EnvironmentObject var faceCaptureSessionManager: FaceCaptureSessionManager
     @Binding var navigationPath: NavigationPath
     var useBackCamera: Bool {
         Settings().useBackCamera
@@ -27,7 +26,8 @@ struct NavStackView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    self.faceCaptureSessionManager.startSession(settings: FaceCaptureSessionSettings.fromDefaults)
+                    let session = FaceCaptureSession(settings: .init(), sessionModuleFactories: .default)
+                    self.navigationPath.append(session)
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")
@@ -40,12 +40,10 @@ struct NavStackView: View {
         .padding()
         .navigationTitle(self.title)
         .navigationDestination(for: FaceCaptureSession.self) { session in
-            NavigationStackFaceCaptureSessionView(session: session, navigationPath: self.$navigationPath, useBackCamera: self.useBackCamera) { result in
+            FaceCaptureNavigationView(session: session, useBackCamera: self.useBackCamera) { result in
+                self.navigationPath.removeLast()
                 self.navigationPath.append(result)
             }
-        }
-        .navigationDestination(for: FaceCaptureSessionResult.self) { result in
-            FaceCaptureResultView(result: result)
         }
         .toolbar {
             ToolbarItem {
@@ -55,11 +53,6 @@ struct NavStackView: View {
                 } label: {
                     Image(systemName: "questionmark.circle")
                 }
-            }
-        }
-        .onReceive(self.faceCaptureSessionManager.$isSessionRunning) { running in
-            if running, let session = self.faceCaptureSessionManager.session {
-                self.navigationPath.append(session)
             }
         }
     }

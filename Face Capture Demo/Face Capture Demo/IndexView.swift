@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FaceCapture
 
 struct IndexView: View {
     
@@ -24,6 +25,9 @@ struct IndexView: View {
             case .navigationStack:
                 NavStackView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
             }
+        }
+        .navigationDestination(for: FaceCaptureSessionResult.self) { result in
+            FaceCaptureResultView(result: result)
         }
     }
 }
