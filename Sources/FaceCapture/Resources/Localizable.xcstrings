@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld" : {
+
+    },
+    "Active liveness check failed: %@" : {
+
+    },
     "Align your face with the oval" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -102,6 +108,12 @@
           }
         }
       }
+    },
+    "Missing file %@ in resource bundle" : {
+
+    },
+    "Passive liveness check failed: %@" : {
+
     },
     "Preparing face detection" : {
       "extractionState" : "manual",

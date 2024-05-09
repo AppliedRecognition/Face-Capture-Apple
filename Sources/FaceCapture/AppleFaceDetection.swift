@@ -87,3 +87,9 @@ public class AppleFaceDetection: FaceDetection {
         return faces.sorted()
     }
 }
+
+extension CGSize: Comparable {
+    public static func < (lhs: CGSize, rhs: CGSize) -> Bool {
+        return lhs.width * lhs.height < rhs.width * rhs.height
+    }
+}

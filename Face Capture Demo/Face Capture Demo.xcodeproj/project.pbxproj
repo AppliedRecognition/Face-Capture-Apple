@@ -11,13 +11,12 @@
 		3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ModalView.swift */; };
 		3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A02B698DA1000F44BB /* Assets.xcassets */; };
 		3B3750A42B698DA1000F44BB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A32B698DA1000F44BB /* Preview Assets.xcassets */; };
-		3B3750AC2B698DD2000F44BB /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B3750AB2B698DD2000F44BB /* FaceCapture */; };
-		3B3750AF2B6991C2000F44BB /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B3750AE2B6991C2000F44BB /* FaceCapture */; };
 		3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */; };
-		3B6CCDD22B72BEBC008A801D /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3B6CCDD12B72BEBC008A801D /* FaceCapture */; };
 		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
 		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
 		3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD72B72C770008A801D /* NavStackView.swift */; };
+		3BAE85DE2BED065800262D15 /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE85DD2BED065800262D15 /* FaceCapture */; };
+		3BAE85E12BED068700262D15 /* SpoofDeviceDetectionFull in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE85E02BED068700262D15 /* SpoofDeviceDetectionFull */; };
 		3BB31AE72B7C176000572844 /* Ver-ID.identity in Resources */ = {isa = PBXBuildFile; fileRef = 3BB31AE62B7C176000572844 /* Ver-ID.identity */; };
 		3BE1A5FC2B761901005E853C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FB2B761900005E853C /* SettingsView.swift */; };
 		3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FD2B762B37005E853C /* Settings.swift */; };
@@ -44,9 +43,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B3750AF2B6991C2000F44BB /* FaceCapture in Frameworks */,
-				3B6CCDD22B72BEBC008A801D /* FaceCapture in Frameworks */,
-				3B3750AC2B698DD2000F44BB /* FaceCapture in Frameworks */,
+				3BAE85DE2BED065800262D15 /* FaceCapture in Frameworks */,
+				3BAE85E12BED068700262D15 /* SpoofDeviceDetectionFull in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,9 +111,8 @@
 			);
 			name = "Face Capture Demo";
 			packageProductDependencies = (
-				3B3750AB2B698DD2000F44BB /* FaceCapture */,
-				3B3750AE2B6991C2000F44BB /* FaceCapture */,
-				3B6CCDD12B72BEBC008A801D /* FaceCapture */,
+				3BAE85DD2BED065800262D15 /* FaceCapture */,
+				3BAE85E02BED068700262D15 /* SpoofDeviceDetectionFull */,
 			);
 			productName = "Face Capture Demo";
 			productReference = 3B3750992B698D9C000F44BB /* Face Capture Demo.app */;
@@ -147,6 +144,7 @@
 			mainGroup = 3B3750902B698D9B000F44BB;
 			packageReferences = (
 				3B6CCDD02B72BEBC008A801D /* XCLocalSwiftPackageReference ".." */,
+				3BAE85DF2BED068700262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */,
 			);
 			productRefGroup = 3B37509A2B698D9C000F44BB /* Products */;
 			projectDirPath = "";
@@ -400,18 +398,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		3BAE85DF2BED068700262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AppliedRecognition/Spoof-Device-Detection-Apple.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		3B3750AB2B698DD2000F44BB /* FaceCapture */ = {
+		3BAE85DD2BED065800262D15 /* FaceCapture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FaceCapture;
 		};
-		3B3750AE2B6991C2000F44BB /* FaceCapture */ = {
+		3BAE85E02BED068700262D15 /* SpoofDeviceDetectionFull */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = FaceCapture;
-		};
-		3B6CCDD12B72BEBC008A801D /* FaceCapture */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FaceCapture;
+			package = 3BAE85DF2BED068700262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */;
+			productName = SpoofDeviceDetectionFull;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

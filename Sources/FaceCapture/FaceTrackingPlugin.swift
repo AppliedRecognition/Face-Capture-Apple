@@ -11,8 +11,8 @@ public protocol FaceTrackingPlugin {
     associatedtype Element: Encodable
     var name: String { get }
     func run(inputStream: AsyncStream<FaceTrackingResult>) -> (String,Task<TaskResults,Error>)
-    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> Element
-    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Element>]) -> String
+    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Element
+    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Element>]) async -> String
 }
 
 public extension FaceTrackingPlugin {
@@ -24,12 +24,12 @@ public extension FaceTrackingPlugin {
                     break
                 }
                 if let frame = faceTrackingResult.serialNumber, let time = faceTrackingResult.time {
-                    let value = try self.processFaceTrackingResult(faceTrackingResult)
+                    let value = try await self.processFaceTrackingResult(faceTrackingResult)
                     let result = FaceTrackingPluginResult(serialNumber: frame, time: time, result: value)
                     results.append(result)
                 }
             }
-            let summary = self.createSummaryFromResults(results)
+            let summary = await self.createSummaryFromResults(results)
             return TaskResults(summary: summary, results: results)
         }
         return (self.name, task)

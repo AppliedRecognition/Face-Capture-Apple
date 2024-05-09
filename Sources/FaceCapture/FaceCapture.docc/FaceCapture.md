@@ -53,7 +53,7 @@ a modal sheet.
     ```swift
     struct MyView: View {
 
-        @State var isCapturing: Bool = false
+        @State var session: FaceCaptureSession?
         @State var result: FaceCaptureSessionResult? = nil
 
         var body: some View {
@@ -64,17 +64,19 @@ a modal sheet.
                         Text("Capture succeeded")
                     case .failure:
                         Text("Capture failed")
+                    case .cancel:
+                        Text("Capture cancelled")
                     }
                     Button("Dismiss") {
                         self.result = nil
                     }
                 } else {
                     Button("Start capture") {
-                        self.isCapturing = true
+                        self.session = FaceCaptureSession()
                     }
                 }
-            }.sheet(isPresented: self.$isCapturing) {
-                FaceCaptureView(configuration: .default, isCapturing: self.$isCapturing, result: self.$result)
+            }.sheet(item: self.$session) { session in
+                FaceCaptureView(session: session, result: self.$result)
             }
         }
     }
@@ -85,9 +87,9 @@ a modal sheet.
     let result: FaceCaptureSessionResult // result from a face capture session 
     
     switch result {
-    case .success(faceCaptures: let faceCaptures, metadata: let metadata):
+    case .success(capturedFaces: let capturedFaces, metadata: let metadata):
         // Get the first capture and display its face image
-        if var capture = faceCaptures.first, let faceImage = capture.faceImage {
+        if var capture = capturedFaces.first, let faceImage = capture.faceImage {
             Image(uiImage: faceImage)
             // The capture face is available in `capture.face`
         }
@@ -103,8 +105,10 @@ a modal sheet.
                 Spacer()
             }
         }
-    case .failure(faceCaptures: _, metadata: _, error: let error):
+    case .failure(capturedFaces: _, metadata: _, error: let error):
         Text("Face capture failed: \(error.localizedDescription)")
+    case .cancelled:
+        Text("Face capture cancelled")
     }
     ```
 

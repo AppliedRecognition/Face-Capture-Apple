@@ -25,7 +25,7 @@ struct FaceCaptureResultView: View {
     var body: some View {
         VStack {
             switch result {
-            case .success(faceCaptures: let faceCaptures, metadata: let metadata):
+            case .success(capturedFaces: let faceCaptures, metadata: let metadata):
                 if var capture = faceCaptures.first, let faceImage = capture.faceImage {
                     HStack {
                         Image(uiImage: faceImage)
@@ -48,9 +48,14 @@ struct FaceCaptureResultView: View {
                         Spacer()
                     }
                 }
-            case .failure(faceCaptures: _, metadata: _, error: let error):
+            case .failure(capturedFaces: _, metadata: _, error: let error):
                 HStack {
                     Text("Face capture failed: \(error.localizedDescription)")
+                    Spacer()
+                }
+            case .cancelled:
+                HStack {
+                    Text("Session cancelled")
                     Spacer()
                 }
             }

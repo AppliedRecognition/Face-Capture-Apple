@@ -17,10 +17,7 @@ struct FaceArrow: Shape {
             let offsetAngle = self.angleBearingEvaluation.offsetFromAngle(properties.smoothedFace.angle, toBearing: properties.requestedBearing)
             let angle: CGFloat = atan2(CGFloat(0.0-offsetAngle.pitch), CGFloat(offsetAngle.yaw))
             let distance: CGFloat = CGFloat(hypot(offsetAngle.yaw, 0-offsetAngle.pitch) * 2)
-            //            let scale = rect.width / CGFloat(properties.input.image.width)
-            //            let faceBounds = properties.expectedFaceBounds.applying(CGAffineTransform(scaleX: scale, y: scale))
             let faceBounds = properties.expectedFaceBounds
-            
             let arrowLength = faceBounds.width / 5
             let stemLength = min(max(arrowLength * distance, arrowLength * 0.75), arrowLength * 1.7)
             let arrowAngle = CGFloat(Measurement(value: 40, unit: UnitAngle.degrees).converted(to: .radians).value)

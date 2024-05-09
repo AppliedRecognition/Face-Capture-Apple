@@ -8,9 +8,34 @@
 import Foundation
 import VerIDCommonTypes
 
-public enum FaceTrackingResult: Hashable, Sendable {
+public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
+    
+    public var description: String {
+        switch self {
+        case .created:
+            return "Created"
+        case .waiting:
+            return "Waiting"
+        case .started:
+            return "Started"
+        case .paused:
+            return "Paused"
+        case .faceFound:
+            return "Face found"
+        case .faceFixed:
+            return "Face fixed"
+        case .faceAligned:
+            return "Face aligned"
+        case .faceMisaligned:
+            return "Face misaligned"
+        case .faceCaptured:
+            return "Face captured"
+        }
+    }
+    
     
     case created(Bearing)
+    case waiting(WaitingSessionProperties)
     case started(StartedSessionProperties)
     case paused(StartedSessionProperties)
     case faceFound(TrackedFaceSessionProperties)
@@ -44,6 +69,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
         switch self {
         case .created(let bearing):
             return bearing
+        case .waiting(let props):
+            return props.requestedBearing
         case .started(let props):
             return props.requestedBearing
         case .paused(let props):
@@ -103,7 +130,7 @@ public enum FaceTrackingResult: Hashable, Sendable {
         }
     }
     
-    public var faceCapture: CapturedFace? {
+    public var capturedFace: CapturedFace? {
         if case .faceCaptured(let props) = self {
             return CapturedFace(image: props.input.image, face: props.face, bearing: props.requestedBearing)
         } else {
@@ -114,6 +141,8 @@ public enum FaceTrackingResult: Hashable, Sendable {
     public var expectedFaceBounds: CGRect? {
         switch self {
         case .started(let props):
+            return props.expectedFaceBounds
+        case .waiting(let props):
             return props.expectedFaceBounds
         case .paused(let props):
             return props.expectedFaceBounds
@@ -169,6 +198,9 @@ public enum FaceTrackingResult: Hashable, Sendable {
         switch self {
         case .created(let bearing):
             return .created(bearing)
+        case .waiting(let props):
+            let updatedProps = WaitingSessionProperties(requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
+            return .waiting(updatedProps)
         case .started(let props):
             let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
             return .started(updatedProps)
@@ -194,13 +226,18 @@ public enum FaceTrackingResult: Hashable, Sendable {
     }
 }
 
-public struct StartedSessionProperties: Hashable {
+public struct WaitingSessionProperties: Hashable, Sendable {
+    public let requestedBearing: Bearing
+    public let expectedFaceBounds: CGRect
+}
+
+public struct StartedSessionProperties: Hashable, Sendable {
     public let input: FaceCaptureSessionImageInput
     public let requestedBearing: Bearing
     public let expectedFaceBounds: CGRect
 }
 
-public struct TrackedFaceSessionProperties: Hashable {
+public struct TrackedFaceSessionProperties: Hashable, Sendable {
     public let input: FaceCaptureSessionImageInput
     public let requestedBearing: Bearing
     public let expectedFaceBounds: CGRect

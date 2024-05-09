@@ -11,30 +11,39 @@ import LivenessDetection
 
 class LivenessDetectionPlugin: FaceTrackingPlugin {
     
-    typealias Element = Float
+    typealias Element = Bool
     let name: String = "Passive liveness"
-    let spoofDetection: SpoofDetection
+    let spoofDetectors: [SpoofDetector]
     var maxPositiveFrameCount: Int = 3
     var failureCount: Int = 0
     
-    init() throws {
-        guard let url = Bundle.module.url(forResource: "ARC_PSD-001_1.1.122_bst_yl80201_NMS_ult201_cml70", withExtension: "mlmodelc") else {
-            throw FaceCaptureError.resourceBundleMissingFile("ARC_PSD-001_1.1.122_bst_yl80201_NMS_ult201_cml70")
-        }
-        let spoofDetector = try SpoofDeviceDetector(compiledModelURL: url, identifier: "Spoof device detector")
-        self.spoofDetection = SpoofDetection(spoofDetector)
+    init(spoofDetectors: [SpoofDetector]) throws {
+        self.spoofDetectors = spoofDetectors
     }
     
-    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> Float {
+    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Bool {
         guard let cgImage = try faceTrackingResult.input?.image.convertToCGImage(), let face = faceTrackingResult.face else {
-            return 0.0
+            return false
         }
-        let score = try self.spoofDetection.detectSpoofInImage(UIImage(cgImage: cgImage), regionOfInterest: face.bounds)
-        if score > self.spoofDetection.confidenceThreshold {
+        let image = UIImage(cgImage: cgImage)
+        let isSpoofed = try await withThrowingTaskGroup(of: Bool.self) { group in
+            for spoofDetector in spoofDetectors {
+                group.addTask {
+                    return try await spoofDetector.isSpoofedImage(image, regionOfInterest: face.bounds)
+                }
+            }
+            for try await isSpoofed in group {
+                if isSpoofed {
+                    return true
+                }
+            }
+            return false
+        }
+        if isSpoofed {
             self.failureCount += 1
         }
         try self.checkFailureCount()
-        return score
+        return isSpoofed
     }
     
     func checkFailureCount() throws {
@@ -43,7 +52,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
         }
     }
     
-    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Float>]) -> String {
+    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Bool>]) async -> String {
         do {
             try self.checkFailureCount()
             return "Liveness test passed"

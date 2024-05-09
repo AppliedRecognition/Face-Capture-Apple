@@ -9,7 +9,7 @@
 import UIKit
 import VerIDCommonTypes
 
-class AngleBearingEvaluation: NSObject {
+final class AngleBearingEvaluation: NSObject, Sendable {
     
     let sessionSettings: FaceCaptureSessionSettings
 

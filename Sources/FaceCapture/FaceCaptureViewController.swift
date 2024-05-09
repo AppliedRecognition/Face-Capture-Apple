@@ -17,16 +17,11 @@ public class FaceCaptureViewController: UIHostingController<FaceCaptureNavigatio
     private var sessionCancellables: Set<AnyCancellable> = []
     
     public init(session: FaceCaptureSession, useBackCamera: Bool = false) {
-        var view = FaceCaptureNavigationView(session: session, useBackCamera: useBackCamera) { _ in }
+        let view = FaceCaptureNavigationView(session: session, useBackCamera: useBackCamera) { _ in }
         super.init(rootView: view)
         session.$result.sink { result in
             if let result = result {
                 self.delegate?.faceCaptureViewController(self, didFinishSessionWithResult: result)
-            }
-        }.store(in: &self.sessionCancellables)
-        session.$isCapturing.sink { isCapturing in
-            if !isCapturing && self.rootView.session.result == nil {
-                self.delegate?.didCancelSessionInFaceCaptureViewController(self)
             }
         }.store(in: &self.sessionCancellables)
     }
@@ -37,9 +32,7 @@ public class FaceCaptureViewController: UIHostingController<FaceCaptureNavigatio
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if self.rootView.session.result == nil {
-            self.rootView.session.cancel()
-        }
+        self.rootView.session.cancel()
     }
 }
 
@@ -48,5 +41,4 @@ public protocol FaceCaptureViewControllerDelegate: AnyObject {
     
     func faceCaptureViewController(_ faceCaptureViewController: FaceCaptureViewController, didFinishSessionWithResult result: FaceCaptureSessionResult)
     
-    func didCancelSessionInFaceCaptureViewController(_ faceCaptureViewController: FaceCaptureViewController)
 }

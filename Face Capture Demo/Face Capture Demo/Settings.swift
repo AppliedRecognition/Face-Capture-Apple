@@ -59,8 +59,8 @@ extension FaceCaptureSessionSettings {
         let settings = Settings()
         var sessionSettings = FaceCaptureSessionSettings()
         sessionSettings.faceCaptureCount = settings.enableActiveLiveness ? 2 : 1
-        sessionSettings.expectedFaceBoundsWidth = settings.faceOvalWidth
-        sessionSettings.expectedFaceBoundsHeight = settings.faceOvalHeight
+        sessionSettings.expectedFaceBoundsWidth = settings.faceOvalWidth / 100
+        sessionSettings.expectedFaceBoundsHeight = settings.faceOvalHeight / 100
         return sessionSettings
     }
 }

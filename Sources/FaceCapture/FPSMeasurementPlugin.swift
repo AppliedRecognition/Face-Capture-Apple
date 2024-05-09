@@ -35,7 +35,7 @@ class FPSMeasurementPlugin: FaceTrackingPlugin {
         return FPSMeasurement(lastSecond: lastSecond, sinceStart: sinceStart)
     }
     
-    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<FPSMeasurement>]) -> String {
+    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<FPSMeasurement>]) async -> String {
         if let fps = results.last?.result.sinceStart {
             return String(format: "%.01f frames per second", fps)
         } else {

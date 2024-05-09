@@ -10,7 +10,7 @@ import VerIDCommonTypes
 
 /// Face capture session settings
 /// - Since: 1.0.0
-public struct FaceCaptureSessionSettings {
+public struct FaceCaptureSessionSettings: Sendable {
     
     /// Face capture count
     ///
@@ -54,6 +54,7 @@ public struct FaceCaptureSessionSettings {
     public var expectedFaceBoundsWidth: CGFloat = 0.55
     public var expectedFaceBoundsHeight: CGFloat = 0.7
     public var faceAspectRatio: CGFloat = 4/5
+    public var countdownSeconds: Int = 3
     public func expectedFaceBoundsInSize(_ size: CGSize) -> CGRect {
         let width: CGFloat
         let height: CGFloat

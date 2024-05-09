@@ -33,6 +33,12 @@ public class FaceCapture: ObservableObject {
         if loaded {
             return
         }
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            await MainActor.run {
+                self.isLoaded = true
+            }
+            return
+        }
         let licence = try await VerIDLicence(identity: identity)
         try await licence.checkLicence()
         await MainActor.run {

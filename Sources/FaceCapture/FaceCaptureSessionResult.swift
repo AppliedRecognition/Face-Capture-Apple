@@ -13,26 +13,31 @@ public enum FaceCaptureSessionResult: Hashable {
     
     /// Session succeeded
     /// - Parameters:
-    ///   - faceCaptures: Face captures including the image and detected face
+    ///   - capturedFaces: Face captures including the image and detected face
     ///   - metadata: Metadata collected by the session's face tracking plugins
     /// - Since: 1.0.0
-    case success(faceCaptures: [CapturedFace], metadata: [String:TaskResults])
+    case success(capturedFaces: [CapturedFace], metadata: [String:TaskResults])
     /// Session failed
     /// - Parameters:
-    ///   - faceCaptures: Face captures including the image and detected face
+    ///   - capturedFaces: Face captures including the image and detected face
     ///   - metadata: Metadata collected by the session's face tracking plugins
     ///   - error: Error that caused the session to fail
     /// - Since: 1.0.0
-    case failure(faceCaptures: [CapturedFace], metadata: [String:TaskResults], error: Error)
+    case failure(capturedFaces: [CapturedFace], metadata: [String:TaskResults], error: Error)
+    /// Session cancelled
+    /// - Since: 1.0.0
+    case cancelled
     
     /// Face captures collected in the session. Each face capture contains an image and the detected face.
     /// - Since: 1.0.0
-    public var faceCaptures: [CapturedFace] {
+    public var capturedFaces: [CapturedFace] {
         switch self {
-        case .success(faceCaptures: let captures, metadata: _):
+        case .success(capturedFaces: let captures, metadata: _):
             return captures
-        case .failure(faceCaptures: let captures, metadata: _, error: _):
+        case .failure(capturedFaces: let captures, metadata: _, error: _):
             return captures
+        case .cancelled:
+            return []
         }
     }
     
@@ -42,10 +47,12 @@ public enum FaceCaptureSessionResult: Hashable {
     /// - Since: 1.0.0
     public var metadata: [String:TaskResults] {
         switch self {
-        case .success(faceCaptures: _, metadata: let metadata):
+        case .success(capturedFaces: _, metadata: let metadata):
             return metadata
-        case .failure(faceCaptures: _, metadata: let metadata, error: _):
+        case .failure(capturedFaces: _, metadata: let metadata, error: _):
             return metadata
+        case .cancelled:
+            return [:]
         }
     }
     
@@ -55,6 +62,8 @@ public enum FaceCaptureSessionResult: Hashable {
             return lhsFaceCaptures.elementsEqual(rhsFaceCaptures, by: ==)
         } else if case .failure(let lhsFaceCaptures, _, let lhsError) = lhs, case .failure(let rhsFaceCaptures, _, let rhsError) = rhs {
             return lhsError == rhsError && lhsFaceCaptures.elementsEqual(rhsFaceCaptures, by: ==)
+        } else if case .cancelled = lhs, case .cancelled = rhs {
+            return true
         } else {
             return false
         }
@@ -62,7 +71,7 @@ public enum FaceCaptureSessionResult: Hashable {
     
     /// Hashable implementation
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.faceCaptures)
+        hasher.combine(self.capturedFaces)
         if case .failure(_, _, let error) = self {
             hasher.combine("\(error)")
         }
@@ -77,7 +86,7 @@ fileprivate func == (lhs: Error, rhs: Error) -> Bool {
 }
 
 fileprivate extension Equatable where Self: Error {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         lhs as Error == rhs as Error
     }
 }

@@ -11,7 +11,7 @@ import FaceCapture
 struct ModalView: View {
     
     @Binding var navigationPath: NavigationPath
-    @State var isCapturing: Bool = false
+    @State var session: FaceCaptureSession?
     @State var result: FaceCaptureSessionResult? = nil
     var useBackCamera: Bool {
         Settings().useBackCamera
@@ -28,7 +28,7 @@ struct ModalView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    self.isCapturing = true
+                    self.session = createFaceCaptureSession()
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")
@@ -39,12 +39,14 @@ struct ModalView: View {
             Spacer()
         }
         .padding()
-        .sheet(isPresented: self.$isCapturing) {
-            FaceCaptureView(configuration: .default, isCapturing: self.$isCapturing, result: self.$result)
+        .sheet(item: self.$session) { session in
+            FaceCaptureView(session: session, result: self.$result, configuration: FaceCaptureViewConfiguration(useBackCamera: self.useBackCamera))
         }
         .onChange(of: self.result) { result in
             if let result = result {
-                self.navigationPath.append(result)
+                if case .cancelled = result {} else {
+                    self.navigationPath.append(result)
+                }
             }
         }
         .toolbar {

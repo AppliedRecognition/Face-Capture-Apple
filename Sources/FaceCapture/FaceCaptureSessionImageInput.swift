@@ -9,7 +9,7 @@ import Foundation
 import ImageIO
 import VerIDCommonTypes
 
-public struct FaceCaptureSessionImageInput: Hashable {
+public struct FaceCaptureSessionImageInput: Hashable, Sendable {
     
     let serialNumber: UInt64
     let time: Double
