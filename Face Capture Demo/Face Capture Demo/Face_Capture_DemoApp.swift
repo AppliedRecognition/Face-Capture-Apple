@@ -8,7 +8,7 @@
 import SwiftUI
 import FaceCapture
 import SpoofDeviceDetection
-import SpoofDeviceDetectionFull
+import SpoofDeviceDetectionModel
 
 @main
 struct Face_Capture_DemoApp: App {

@@ -29,7 +29,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
         let isSpoofed = try await withThrowingTaskGroup(of: Bool.self) { group in
             for spoofDetector in spoofDetectors {
                 group.addTask {
-                    return try await spoofDetector.isSpoofedImage(image, regionOfInterest: face.bounds)
+                    return try await spoofDetector.isSpoofImage(image, regionOfInterest: face.bounds)
                 }
             }
             for try await isSpoofed in group {
