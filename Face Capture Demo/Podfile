@@ -1,0 +1,9 @@
+platform :ios, '13.0'
+
+target 'Face Capture Demo' do
+  use_frameworks!
+
+  # Pods for Face Capture Demo
+  pod 'FaceCapture', :git => 'https://github.com/AppliedRecognition/Face-Capture-Apple.git'
+  pod 'SpoofDeviceDetection', :git => 'https://github.com/AppliedRecognition/Spoof-Device-Detection-Apple.git'
+end
