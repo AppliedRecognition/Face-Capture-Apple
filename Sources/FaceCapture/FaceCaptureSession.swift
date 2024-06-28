@@ -40,7 +40,7 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
     
     public init(
         settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings(),
-        sessionModuleFactories: FaceCaptureSessionModuleFactories = .default
+        sessionModuleFactories: FaceCaptureSessionModuleFactories = .default()
     ) {
         self.id = UUID()
         self.faceTracking = SessionFaceTracking(faceDetection: sessionModuleFactories.createFaceDetection(), settings: settings)
@@ -215,21 +215,40 @@ public struct FaceCaptureSessionModuleFactories {
     public let createFaceTrackingPlugins: () -> [any FaceTrackingPlugin]
     public let createFaceTrackingResultTransformers: () -> [FaceTrackingResultTransformer]
     
-    public static let `default`: FaceCaptureSessionModuleFactories = {
+    public init(
+        createFaceDetection: @escaping () -> FaceDetection,
+        createFaceTrackingPlugins: @escaping () -> [any FaceTrackingPlugin],
+        createFaceTrackingResultTransformers: @escaping () -> [FaceTrackingResultTransformer]
+    ) {
+        self.createFaceDetection = createFaceDetection
+        self.createFaceTrackingPlugins = createFaceTrackingPlugins
+        self.createFaceTrackingResultTransformers = createFaceTrackingResultTransformers
+    }
+    
+    public static func `default`(createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
         return .init(createFaceDetection: {
-            AppleFaceDetection()
+            if let create = createFaceDetection {
+                return create()
+            }
+            return AppleFaceDetection()
         }, createFaceTrackingPlugins: {
             return [FPSMeasurementPlugin()]
         }, createFaceTrackingResultTransformers: { [] })
-    }()
+    }
     
-    public static func livenessDetection(detectors: [SpoofDetector]) -> FaceCaptureSessionModuleFactories {
+    public static func livenessDetection(createSpoofDetectors: @escaping () -> [SpoofDetector], createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
         return .init(createFaceDetection: {
-            AppleFaceDetection()
+            if let create = createFaceDetection {
+                return create()
+            }
+            return AppleFaceDetection()
         }, createFaceTrackingPlugins: {
             var plugins: [any FaceTrackingPlugin] = []
-            if let livenessDetection = try? LivenessDetectionPlugin(spoofDetectors: detectors) {
-                plugins.append(livenessDetection)
+            let spoofDetectors = createSpoofDetectors()
+            if !spoofDetectors.isEmpty {
+                if let livenessDetection = try? LivenessDetectionPlugin(spoofDetectors: spoofDetectors) {
+                    plugins.append(livenessDetection)
+                }
             }
             plugins.append(FPSMeasurementPlugin())
             return plugins
