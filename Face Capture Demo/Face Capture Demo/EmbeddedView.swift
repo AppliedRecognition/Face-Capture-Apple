@@ -47,6 +47,7 @@ struct EmbeddedView: View {
                         }
                     } else {
                         Button {
+                            self.result = nil
                             self.session = createFaceCaptureSession()
                         } label: {
                             Image(systemName: "camera.fill")

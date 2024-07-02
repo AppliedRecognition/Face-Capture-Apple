@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		130D86B8E33C7FCC572C17DB /* libPods-Face Capture Demo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0703562F1590AF7BF48F8AFE /* libPods-Face Capture Demo.a */; };
 		3B37509D2B698D9C000F44BB /* Face_Capture_DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */; };
 		3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ModalView.swift */; };
 		3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A02B698DA1000F44BB /* Assets.xcassets */; };
@@ -15,16 +16,13 @@
 		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
 		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
 		3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD72B72C770008A801D /* NavStackView.swift */; };
-		3BAE85DE2BED065800262D15 /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE85DD2BED065800262D15 /* FaceCapture */; };
-		3BAE86212BEEBEA500262D15 /* SpoofDeviceDetection in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE86202BEEBEA500262D15 /* SpoofDeviceDetection */; };
-		3BAE86232BEEBEA500262D15 /* SpoofDeviceDetectionModel in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE86222BEEBEA500262D15 /* SpoofDeviceDetectionModel */; };
-		3BAE86252BEEBF2700262D15 /* FaceCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 3BAE86242BEEBF2700262D15 /* FaceCapture */; };
 		3BB31AE72B7C176000572844 /* Ver-ID.identity in Resources */ = {isa = PBXBuildFile; fileRef = 3BB31AE62B7C176000572844 /* Ver-ID.identity */; };
 		3BE1A5FC2B761901005E853C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FB2B761900005E853C /* SettingsView.swift */; };
 		3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1A5FD2B762B37005E853C /* Settings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0703562F1590AF7BF48F8AFE /* libPods-Face Capture Demo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Face Capture Demo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3750992B698D9C000F44BB /* Face Capture Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Face Capture Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Face_Capture_DemoApp.swift; sourceTree = "<group>"; };
 		3B37509E2B698D9C000F44BB /* ModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalView.swift; sourceTree = "<group>"; };
@@ -38,6 +36,8 @@
 		3BB31AE62B7C176000572844 /* Ver-ID.identity */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Ver-ID.identity"; sourceTree = "<group>"; };
 		3BE1A5FB2B761900005E853C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3BE1A5FD2B762B37005E853C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		91937E8782B98B96AC743E2D /* Pods-Face Capture Demo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Face Capture Demo.release.xcconfig"; path = "Target Support Files/Pods-Face Capture Demo/Pods-Face Capture Demo.release.xcconfig"; sourceTree = "<group>"; };
+		DE16AFB8BC14378E644230BC /* Pods-Face Capture Demo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Face Capture Demo.debug.xcconfig"; path = "Target Support Files/Pods-Face Capture Demo/Pods-Face Capture Demo.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,10 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3BAE86212BEEBEA500262D15 /* SpoofDeviceDetection in Frameworks */,
-				3BAE85DE2BED065800262D15 /* FaceCapture in Frameworks */,
-				3BAE86252BEEBF2700262D15 /* FaceCapture in Frameworks */,
-				3BAE86232BEEBEA500262D15 /* SpoofDeviceDetectionModel in Frameworks */,
+				130D86B8E33C7FCC572C17DB /* libPods-Face Capture Demo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,6 +57,8 @@
 			children = (
 				3B37509B2B698D9C000F44BB /* Face Capture Demo */,
 				3B37509A2B698D9C000F44BB /* Products */,
+				A1BE3C60AEF5217BF30B52B7 /* Pods */,
+				915BF4B145DF0BFE29C2526C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -98,6 +97,23 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		915BF4B145DF0BFE29C2526C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0703562F1590AF7BF48F8AFE /* libPods-Face Capture Demo.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A1BE3C60AEF5217BF30B52B7 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				DE16AFB8BC14378E644230BC /* Pods-Face Capture Demo.debug.xcconfig */,
+				91937E8782B98B96AC743E2D /* Pods-Face Capture Demo.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -105,21 +121,17 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3B3750A72B698DA1000F44BB /* Build configuration list for PBXNativeTarget "Face Capture Demo" */;
 			buildPhases = (
+				D9317CD86B52F9F56CC18371 /* [CP] Check Pods Manifest.lock */,
 				3B3750952B698D9C000F44BB /* Sources */,
 				3B3750962B698D9C000F44BB /* Frameworks */,
 				3B3750972B698D9C000F44BB /* Resources */,
+				3C622DE29A4EA70F3C336A8A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = "Face Capture Demo";
-			packageProductDependencies = (
-				3BAE85DD2BED065800262D15 /* FaceCapture */,
-				3BAE86202BEEBEA500262D15 /* SpoofDeviceDetection */,
-				3BAE86222BEEBEA500262D15 /* SpoofDeviceDetectionModel */,
-				3BAE86242BEEBF2700262D15 /* FaceCapture */,
-			);
 			productName = "Face Capture Demo";
 			productReference = 3B3750992B698D9C000F44BB /* Face Capture Demo.app */;
 			productType = "com.apple.product-type.application";
@@ -148,10 +160,6 @@
 				Base,
 			);
 			mainGroup = 3B3750902B698D9B000F44BB;
-			packageReferences = (
-				3B6CCDD02B72BEBC008A801D /* XCLocalSwiftPackageReference ".." */,
-				3BAE861F2BEEBEA500262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */,
-			);
 			productRefGroup = 3B37509A2B698D9C000F44BB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -173,6 +181,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3C622DE29A4EA70F3C336A8A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Face Capture Demo/Pods-Face Capture Demo-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Face Capture Demo/Pods-Face Capture Demo-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Face Capture Demo/Pods-Face Capture Demo-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D9317CD86B52F9F56CC18371 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Face Capture Demo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3B3750952B698D9C000F44BB /* Sources */ = {
@@ -314,6 +364,7 @@
 		};
 		3B3750A82B698DA1000F44BB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DE16AFB8BC14378E644230BC /* Pods-Face Capture Demo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -322,6 +373,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Face Capture Demo/Preview Content\"";
 				DEVELOPMENT_TEAM = CSD8L9EK66;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Face-Capture-Demo-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For face capture";
@@ -345,6 +397,7 @@
 		};
 		3B3750A92B698DA1000F44BB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 91937E8782B98B96AC743E2D /* Pods-Face Capture Demo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -353,6 +406,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Face Capture Demo/Preview Content\"";
 				DEVELOPMENT_TEAM = CSD8L9EK66;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Face-Capture-Demo-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For face capture";
@@ -396,45 +450,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		3B6CCDD02B72BEBC008A801D /* XCLocalSwiftPackageReference ".." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
-		};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		3BAE861F2BEEBEA500262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/AppliedRecognition/Spoof-Device-Detection-Apple.git";
-			requirement = {
-				kind = revision;
-				revision = fcb22e4b8b8a8719df42670e6b6cc9715b702f8c;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		3BAE85DD2BED065800262D15 /* FaceCapture */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FaceCapture;
-		};
-		3BAE86202BEEBEA500262D15 /* SpoofDeviceDetection */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3BAE861F2BEEBEA500262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */;
-			productName = SpoofDeviceDetection;
-		};
-		3BAE86222BEEBEA500262D15 /* SpoofDeviceDetectionModel */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3BAE861F2BEEBEA500262D15 /* XCRemoteSwiftPackageReference "Spoof-Device-Detection-Apple" */;
-			productName = SpoofDeviceDetectionModel;
-		};
-		3BAE86242BEEBF2700262D15 /* FaceCapture */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FaceCapture;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3B3750912B698D9B000F44BB /* Project object */;
 }

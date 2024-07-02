@@ -1,0 +1,72 @@
+PODS:
+  - ASN1Decoder (1.10.0)
+  - CertificateSigningRequest (1.30.0)
+  - FaceCapture (1.0.0):
+    - LivenessDetectionCore (~> 1.0.0)
+    - VerIDCommonTypes (~> 1.0.0)
+    - VerIDLicence (~> 1.0.0)
+  - FaceDetectionMediaPipe (1.0.0):
+    - MediaPipeTasksVision (~> 0.10)
+    - VerIDCommonTypes (~> 1.0)
+  - LivenessDetectionCore (1.0.0)
+  - MediaPipeTasksCommon (0.10.14)
+  - MediaPipeTasksVision (0.10.14):
+    - MediaPipeTasksCommon (= 0.10.14)
+  - SpoofDeviceDetection/Core (1.0.0):
+    - LivenessDetectionCore (~> 1.0)
+  - SpoofDeviceDetection/Model (1.0.0):
+    - LivenessDetectionCore (~> 1.0)
+    - SpoofDeviceDetection/Core
+  - Ver-ID-SDK-Identity (4.0.0):
+    - ASN1Decoder (~> 1.9)
+    - CertificateSigningRequest (~> 1.30)
+  - VerIDCommonTypes (1.0.0)
+  - VerIDLicence (1.0.0):
+    - Ver-ID-SDK-Identity (~> 4.0.0)
+
+DEPENDENCIES:
+  - FaceCapture (from `../`)
+  - FaceDetectionMediaPipe (from `https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git`, commit `b2b35717b8523d3a03e9b688db5b0e61fc1ca8e1`)
+  - SpoofDeviceDetection/Model (~> 1.0)
+
+SPEC REPOS:
+  file:///Users/jakub/Applied-Recognition/CocoaPods-repo:
+    - LivenessDetectionCore
+    - SpoofDeviceDetection
+    - Ver-ID-SDK-Identity
+    - VerIDCommonTypes
+    - VerIDLicence
+  trunk:
+    - ASN1Decoder
+    - CertificateSigningRequest
+    - MediaPipeTasksCommon
+    - MediaPipeTasksVision
+
+EXTERNAL SOURCES:
+  FaceCapture:
+    :path: "../"
+  FaceDetectionMediaPipe:
+    :commit: b2b35717b8523d3a03e9b688db5b0e61fc1ca8e1
+    :git: https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git
+
+CHECKOUT OPTIONS:
+  FaceDetectionMediaPipe:
+    :commit: b2b35717b8523d3a03e9b688db5b0e61fc1ca8e1
+    :git: https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git
+
+SPEC CHECKSUMS:
+  ASN1Decoder: 91cb1d781b5a178ea7375b2f1519e2bdaaa4c427
+  CertificateSigningRequest: de2920a410a9d3737d636fbb89b9fe77b6f1f4a1
+  FaceCapture: ac9550ec750570538e7aa69bf1d6053daf17c026
+  FaceDetectionMediaPipe: 328cd8c657e94fb02ce257b7e324f8ae6693fd46
+  LivenessDetectionCore: f19b47284f5702e21af8ea55fe7defac86f33829
+  MediaPipeTasksCommon: 5660099c2dd81f7ac4a7a5f51055785ead8e0e64
+  MediaPipeTasksVision: 0fac0db83c0b45e4d7811a9227be5e571403cf83
+  SpoofDeviceDetection: 04872bb7d39380616442361b98a7c5d9c1eee1fb
+  Ver-ID-SDK-Identity: b8829980c4f03b03655180f41444875f09181212
+  VerIDCommonTypes: 4ddc6fcdd4bd7996e66df4491cf9de224f2370bc
+  VerIDLicence: 49c2879434228e233aa9845cccc4029c04b665ca
+
+PODFILE CHECKSUM: 5e12fd2b4ab07d389e8da31f2339a2631d1c7264
+
+COCOAPODS: 1.15.2

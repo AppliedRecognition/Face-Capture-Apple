@@ -7,8 +7,6 @@
 
 import SwiftUI
 import FaceCapture
-import SpoofDeviceDetection
-import SpoofDeviceDetectionModel
 
 @main
 struct Face_Capture_DemoApp: App {
@@ -40,11 +38,5 @@ struct Face_Capture_DemoApp: App {
 }
 
 func createFaceCaptureSession() -> FaceCaptureSession {
-    let moduleFactories: FaceCaptureSessionModuleFactories
-    if let spoofDeviceDetector = try? SpoofDeviceDetector() {
-        moduleFactories = .livenessDetection(detectors: [spoofDeviceDetector])
-    } else {
-        moduleFactories = .default
-    }
-    return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: moduleFactories)
+    return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .fromDefaults)
 }

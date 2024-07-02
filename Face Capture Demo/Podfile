@@ -1,9 +1,13 @@
+source 'file:///Users/jakub/Applied-Recognition/CocoaPods-repo'
+source 'https://cdn.cocoapods.org/'
+
 platform :ios, '13.0'
 
 target 'Face Capture Demo' do
-  use_frameworks!
+  # use_frameworks!
 
   # Pods for Face Capture Demo
-  pod 'FaceCapture', :git => 'https://github.com/AppliedRecognition/Face-Capture-Apple.git'
-  pod 'SpoofDeviceDetection', :git => 'https://github.com/AppliedRecognition/Spoof-Device-Detection-Apple.git'
+  pod 'FaceCapture', :path => '../'
+  pod 'SpoofDeviceDetection/Model', '~> 1.0'
+  pod 'FaceDetectionMediaPipe', :git => 'https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git', :commit => 'b2b35717b8523d3a03e9b688db5b0e61fc1ca8e1'
 end

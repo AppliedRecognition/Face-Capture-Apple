@@ -22,6 +22,12 @@ struct SettingsView: View {
                 } label: {
                     Text("Face oval size")
                 }
+                Picker("Face detection", selection: self.$settings.faceDetection) {
+                    ForEach(FaceDetectionImplementation.allCases, id: \.self.rawValue) { opt in
+                        Text(opt.rawValue).tag(opt)
+                    }
+                }
+                .pickerStyle(.menu)
             } header: {
                 Text("Session settings")
             }
