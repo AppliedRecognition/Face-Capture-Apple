@@ -11,25 +11,30 @@ import SceneKit
 import SwiftUI
 import VerIDCommonTypes
 
-struct HeadView3D: UIViewRepresentable {
+public struct HeadView3D: UIViewRepresentable {
     
-    @Binding var headColor: UIColor
-    @Binding var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>)
+    @Binding public var headColor: UIColor
+    @Binding public var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>)
     
-    func makeUIView(context: Context) -> HeadUIView3D {
+    public func makeUIView(context: Context) -> HeadUIView3D {
         let view = HeadUIView3D()
         view.headColor = self.headColor
         view.headAngle = self.headAngle
         return view
     }
     
-    func updateUIView(_ uiView: HeadUIView3D, context: Context) {
+    public func updateUIView(_ uiView: HeadUIView3D, context: Context) {
         uiView.headColor = self.headColor
         uiView.headAngle = self.headAngle
     }
+    
+    public init(headColor: Binding<UIColor>, headAngle: Binding<(start: EulerAngle<Float>, end: EulerAngle<Float>)>) {
+        self._headColor = headColor
+        self._headAngle = headAngle
+    }
 }
 
-class HeadUIView3D: SCNView {
+public class HeadUIView3D: SCNView {
     
     var headColor: UIColor = .gray {
         didSet {
@@ -45,6 +50,11 @@ class HeadUIView3D: SCNView {
         didSet {
             self.camera.fieldOfView = CGFloat(atan2(self.headNode.boundingSphere.radius*2.2, self.cameraNode.position.z) / .pi * 180)
             if self.isAnimating {
+                return
+            }
+            if self.headAngle.start == self.headAngle.end {
+                self.headNode.eulerAngles.y = self.headAngle.start.yaw / 180 * .pi
+                self.headNode.eulerAngles.x = self.headAngle.start.pitch / 180 * .pi
                 return
             }
             let startPitch = self.headAngle.start.pitch / 180 * .pi
@@ -123,11 +133,11 @@ class HeadUIView3D: SCNView {
 
 extension HeadUIView3D: CAAnimationDelegate {
     
-    func animationDidStart(_ anim: CAAnimation) {
+    public func animationDidStart(_ anim: CAAnimation) {
         self.isAnimating = true
     }
     
-    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+    public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         self.isAnimating = false
     }
 }

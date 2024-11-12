@@ -109,7 +109,9 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
                     try await FaceCapture.default.load()
                 } catch {
                     self.finishSession()
-                    self.result = .failure(capturedFaces: [], metadata: [:], error: "Face capture library not loaded")
+                    await MainActor.run {
+                        self.result = .failure(capturedFaces: [], metadata: [:], error: "Face capture library not loaded")
+                    }
                 }
             }
         }

@@ -18,6 +18,7 @@ class Settings: ObservableObject {
         static let faceOvalWidth = "faceOvalWidth"
         static let faceOvalHeight = "faceOvalHeight"
         static let faceDetection = "faceDetection"
+        static let yawThreshold = "yawThreshold"
     }
     
     @Published var useBackCamera: Bool = false {
@@ -45,6 +46,11 @@ class Settings: ObservableObject {
             UserDefaults.standard.set(self.faceDetection.rawValue, forKey: Keys.faceDetection)
         }
     }
+    @Published var yawThreshold: Float {
+        didSet {
+            UserDefaults.standard.set(self.yawThreshold, forKey: Keys.yawThreshold)
+        }
+    }
     
     init() {
         let settings = FaceCaptureSessionSettings()
@@ -53,13 +59,15 @@ class Settings: ObservableObject {
             Keys.enableActiveLiveness: false,
             Keys.faceOvalWidth: settings.expectedFaceBoundsWidth,
             Keys.faceOvalHeight: settings.expectedFaceBoundsHeight,
-            Keys.faceDetection: FaceDetectionImplementation.mediaPipe.rawValue
+            Keys.faceDetection: FaceDetectionImplementation.mediaPipe.rawValue,
+            Keys.yawThreshold: settings.yawThreshold
         ])
         self.useBackCamera = UserDefaults.standard.bool(forKey: Keys.useBackCamera)
         self.enableActiveLiveness = UserDefaults.standard.bool(forKey: Keys.enableActiveLiveness)
         self.faceOvalWidth = UserDefaults.standard.double(forKey: Keys.faceOvalWidth) * 100
         self.faceOvalHeight = UserDefaults.standard.double(forKey: Keys.faceOvalHeight) * 100
         self.faceDetection = FaceDetectionImplementation(rawValue: UserDefaults.standard.string(forKey: Keys.faceDetection) ?? FaceDetectionImplementation.mediaPipe.rawValue) ?? .mediaPipe
+        self.yawThreshold = UserDefaults.standard.float(forKey: Keys.yawThreshold)
     }
 }
 
@@ -71,6 +79,7 @@ extension FaceCaptureSessionSettings {
         sessionSettings.faceCaptureCount = settings.enableActiveLiveness ? 2 : 1
         sessionSettings.expectedFaceBoundsWidth = settings.faceOvalWidth / 100
         sessionSettings.expectedFaceBoundsHeight = settings.faceOvalHeight / 100
+        sessionSettings.yawThreshold = settings.yawThreshold
         return sessionSettings
     }
 }

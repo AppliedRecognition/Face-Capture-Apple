@@ -86,13 +86,14 @@ final class SessionFaceTracking {
             }
         } else {
             self.angleHistory.removeAll()
+            self.faces.removeFirst()
         }
         var result: FaceTrackingResult = .started(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds))
-        if !self.hasFaceBeenFixed && self.faces.hasRemovedElements && self.faces.allSatisfy({ $0.isFixed }) {
+        if !self.hasFaceBeenFixed && self.faces.hasRemovedElements && !self.faces.isEmpty && self.faces.allSatisfy({ $0.isFixed }) {
             self.hasFaceBeenFixed = true
             return .faceFixed(TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!))
         }
-        if self.hasFaceBeenFixed && self.faces.hasRemovedElements {
+        if self.hasFaceBeenFixed && self.faces.hasRemovedElements && !self.faces.isEmpty {
             if self.faces.allSatisfy({ $0.isAligned }) {
                 let now = CACurrentMediaTime()
                 if let alignTime = self.alignTime, now-alignTime < self.settings.pauseDuration {
@@ -128,7 +129,11 @@ final class SessionFaceTracking {
 //            throw FaceCaptureError.facePresenceError(reason: .faceLost(bearing: self.requestedBearing))
         }
         if !self.faces.isEmpty {
-            return .faceFound(TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!))
+            let properties = TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!)
+            if self.hasFaceBeenFixed {
+                return .faceFixed(properties)
+            }
+            return .faceFound(properties)
         }
         return result
     }

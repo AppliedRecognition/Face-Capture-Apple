@@ -6,16 +6,35 @@
 //
 
 import SwiftUI
+import VerIDCommonTypes
+import FaceCapture
 
 struct SettingsView: View {
     
     @ObservedObject var settings: Settings = Settings()
+    @State private var headColor: UIColor = .gray
+    @State private var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init())
     
     var body: some View {
         List {
             Section {
                 Toggle("Use back camera", isOn: self.$settings.useBackCamera)
                 Toggle("Enable active liveness", isOn: self.$settings.enableActiveLiveness)
+                if self.settings.enableActiveLiveness {
+                    VStack {
+                        HStack {
+                            HeadView3D(headColor: self.$headColor, headAngle: self.$headAngle).frame(width: 125, height: 120)
+                            Spacer()
+                        }
+                        HStack {
+                            Text(String(format: "Yaw %.0fº", self.settings.yawThreshold))
+                            Spacer()
+                            Slider(value: self.$settings.yawThreshold, in: 12...45) {
+                                Text("Yaw threshold")
+                            }
+                        }
+                    }
+                }
                 NavigationLink {
                     FaceOvalSizeView(settings: self.settings)
                         .navigationTitle("Face oval")
@@ -33,6 +52,14 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .onChange(of: self.settings.yawThreshold) { yaw in
+            let angle = EulerAngle(yaw: yaw, pitch: 0, roll: 0)
+            self.headAngle = (start: angle, end: angle)
+        }
+        .onAppear {
+            let angle = EulerAngle(yaw: self.settings.yawThreshold, pitch: 0, roll: 0)
+            self.headAngle = (start: angle, end: angle)
+        }
     }
 }
 
