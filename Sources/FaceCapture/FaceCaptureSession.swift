@@ -38,6 +38,14 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
     /// - Since: 1.0.0
     public lazy var settings: FaceCaptureSessionSettings = self.faceTracking.settings
     
+    public static func supportsDepthCaptureOnDeviceAt(_ position: AVCaptureDevice.Position) -> Bool {
+        if let device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera], mediaType: .video, position: position).devices.first, device.formats.contains(where: { $0.supportedDepthDataFormats.contains(where: { CMFormatDescriptionGetMediaSubType($0.formatDescription) == kCVPixelFormatType_DepthFloat32 })}) {
+            return true
+        } else {
+            return false
+        }
+    }
+    
     public init(
         settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings(),
         sessionModuleFactories: FaceCaptureSessionModuleFactories = .default()
@@ -67,14 +75,14 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
                     }
                     let faceTrackingResult = try await self.faceTracking.trackFace(in: inp)
                     self.faceTrackingResultSubject.send(faceTrackingResult)
+                    self.faceTrackingPluginContinuations.forEach {
+                        $0.yield(faceTrackingResult)
+                    }
                     if let capture = faceTrackingResult.capturedFace {
                         capturedFaces.append(capture)
                         if capturedFaces.count >= self.settings.faceCaptureCount {
                             break
                         }
-                    }
-                    self.faceTrackingPluginContinuations.forEach {
-                        $0.yield(faceTrackingResult)
                     }
                 }
                 self.finishPluginTasks()

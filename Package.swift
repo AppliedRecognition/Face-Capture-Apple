@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/AppliedRecognition/Liveness-Detection-Core-Apple.git", revision: "c8f9cc500e8f62a58b758ab83e559e361662a104"),
         .package(url: "https://github.com/AppliedRecognition/Ver-ID-Licence-Apple.git", revision: "3880349a180c4405fd56973f71a8fa88b753d3d9"),
-        .package(url: "https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple.git", revision: "74b77e3dea2d19f4f22b27b7437c40c38852bdbf")
+        .package(url: "https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple.git", revision: "0debdd8d6f1c04b6b7dfd4161f27911c06b2e174")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

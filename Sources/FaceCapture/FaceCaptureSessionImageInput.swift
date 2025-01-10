@@ -14,4 +14,5 @@ public struct FaceCaptureSessionImageInput: Hashable, Sendable {
     let serialNumber: UInt64
     let time: Double
     let image: Image
+    let viewSize: CGSize
 }

@@ -45,7 +45,9 @@ struct ModalView: View {
         .onChange(of: self.result) { result in
             if let result = result {
                 if case .cancelled = result {} else {
-                    self.navigationPath.append(result)
+                    Task { @MainActor in
+                        self.navigationPath.append(result)
+                    }
                 }
             }
         }
@@ -53,7 +55,6 @@ struct ModalView: View {
             ToolbarItem {
                 NavigationLink {
                     TipsView()
-                        .navigationTitle("Tips")
                 } label: {
                     Image(systemName: "questionmark.circle")
                 }

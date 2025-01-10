@@ -42,14 +42,13 @@ class VideoRecordingPlugin: FaceTrackingPlugin {
         guard let input = self.videoInput else {
             return self.videoURL
         }
-        let cgImage = try image.convertToCGImage()
-        if let data = cgImage.dataProvider?.data, let mutableData = CFDataCreateMutableCopy(kCFAllocatorDefault, 0, data), let dataPtr = CFDataGetMutableBytePtr(mutableData), let time = faceTrackingResult.time {
-            var pixelBuffer: CVPixelBuffer? = nil
-            guard CVPixelBufferCreateWithBytes(kCFAllocatorDefault, image.width, image.height, kCVPixelFormatType_32BGRA, dataPtr, image.bytesPerRow, nil, nil, nil, &pixelBuffer) == kCVReturnSuccess, let buffer = pixelBuffer else {
-                return self.videoURL
-            }
+        if let time = faceTrackingResult.time {
             let adapter = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input)
-            adapter.append(buffer, withPresentationTime: CMTime(seconds: time, preferredTimescale: 1000))
+            CVPixelBufferLockBaseAddress(image.videoBuffer, .readOnly)
+            defer {
+                CVPixelBufferUnlockBaseAddress(image.videoBuffer, .readOnly)
+            }
+            adapter.append(image.videoBuffer, withPresentationTime: CMTime(seconds: time, preferredTimescale: 1000))
         }
         return self.videoURL
     }

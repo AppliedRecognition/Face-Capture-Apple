@@ -8,6 +8,8 @@ target 'Face Capture Demo' do
 
   # Pods for Face Capture Demo
   pod 'FaceCapture', :path => '../'
+  pod 'VerIDCommonTypes', :git => 'https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple.git', :commit => '0debdd8d6f1c04b6b7dfd4161f27911c06b2e174'
   pod 'SpoofDeviceDetection/Model', '~> 1.0'
-  pod 'FaceDetectionMediaPipe', :git => 'https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git', :commit => 'b2b35717b8523d3a03e9b688db5b0e61fc1ca8e1'
+  pod 'Ver-ID-3-Serialization', :git => 'https://github.com/AppliedRecognition/Ver-ID-3-Serialization-Apple.git', :commit => 'ea6dfb1ecdb05546233d7cc34d62d3cc64d5bd9f'
+  pod 'FaceDetectionMediaPipe', :git => 'https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple.git', :commit => 'd9d56322269dee1b1f6e210693fbcbe855674f37'
 end

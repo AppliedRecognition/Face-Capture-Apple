@@ -7,6 +7,7 @@
 
 import Foundation
 import VerIDCommonTypes
+import AVFoundation
 
 public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
@@ -184,13 +185,17 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     public func scaledToFitViewSize(_ viewSize: CGSize, mirrored: Bool) -> FaceTrackingResult {
         let scale: CGFloat
+        let offsetTransform: CGAffineTransform
         if let imageSize = self.input?.image.size {
-            scale = viewSize.width / imageSize.width
+            let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: imageSize))
+            scale = viewSize.width / rect.width
+            offsetTransform = CGAffineTransform(translationX: 0-rect.minX, y: 0-rect.minY)
         } else {
             scale = 1
+            offsetTransform = .identity
         }
         let mirrorTransform = mirrored ? CGAffineTransform(scaleX: -1, y: 1).concatenating(CGAffineTransform(translationX: viewSize.width, y: 0)) : .identity
-        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale).concatenating(mirrorTransform)
+        let scaleTransform = offsetTransform.concatenating(CGAffineTransform(scaleX: scale, y: scale).concatenating(mirrorTransform))
         let expectedFaceBounds: CGRect = self.expectedFaceBounds?.applying(scaleTransform) ?? .null
         let expectedFaceAspectRatio = !expectedFaceBounds.isNull ? expectedFaceBounds.size.width / expectedFaceBounds.size.height : 1
         let smoothedFace: Face? = self.smoothedFace?.withBoundsSetToAspectRatio(expectedFaceAspectRatio).applying(scaleTransform)

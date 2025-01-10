@@ -16,18 +16,13 @@ final class FaceCaptureSessionTests: XCTestCase {
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            do {
-                if session.result != nil {
-                    timer.invalidate()
-                    return
-                }
-                let time = CACurrentMediaTime() - start
-                let image = self.createImage()
-                try session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serial, time: time, image: image.convertToImage()))
-                serial += 1
-            } catch {
+            if session.result != nil {
                 timer.invalidate()
+                return
             }
+            let time = CACurrentMediaTime() - start
+            session.submitImageInput(self.createSessionInput(serial: serial, time: time))
+            serial += 1
         }
         let expectation = XCTestExpectation(description: "Emit a result")
         let cancellable = session.$result.sink { result in
@@ -55,18 +50,13 @@ final class FaceCaptureSessionTests: XCTestCase {
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            do {
-                if session.result != nil {
-                    timer.invalidate()
-                    return
-                }
-                let time = CACurrentMediaTime() - start
-                let image = self.createImage()
-                try session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serial, time: time, image: image.convertToImage()))
-                serial += 1
-            } catch {
+            if session.result != nil {
                 timer.invalidate()
+                return
             }
+            let time = CACurrentMediaTime() - start
+            session.submitImageInput(self.createSessionInput(serial: serial, time: time))
+            serial += 1
         }
         let expectation = XCTestExpectation(description: "Emit a result")
         let cancellable = session.$result.sink { result in
@@ -89,10 +79,12 @@ final class FaceCaptureSessionTests: XCTestCase {
         }
     }
     
-    private func createImage() -> UIImage {
-        UIGraphicsImageRenderer(size: CGSize(width: 600, height: 800)).image { context in
-            
+    private func createSessionInput(serial: UInt64, time: TimeInterval) -> FaceCaptureSessionImageInput {
+        let imageSize = CGSize(width: 600, height: 800)
+        guard let image = UIGraphicsImageRenderer(size: imageSize).image(actions: { _ in }).cgImage else {
+            fatalError()
         }
+        return FaceCaptureSessionImageInput(serialNumber: serial, time: time, image: Image(cgImage: image)!, viewSize: imageSize)
     }
 }
 
@@ -109,7 +101,7 @@ class MockFaceDetection: FaceDetection {
             faceHeight = faceWidth * 1.25
         }
         let bounds = CGRect(x: CGFloat(image.width) / 2 - faceWidth / 2, y: CGFloat(image.height) / 2 - faceHeight / 2, width: faceWidth, height: faceHeight)
-        return [Face(bounds: bounds, angle: .identity, quality: 10, landmarks: [])]
+        return [Face(bounds: bounds, angle: .identity, quality: 10, landmarks: [], leftEye: CGPoint(x: bounds.minX + faceWidth * 0.3, y: bounds.minY + faceHeight * 0.3), rightEye: CGPoint(x: bounds.maxX - faceWidth * 0.3, y: bounds.minY + faceHeight * 0.3))]
     }
 }
 

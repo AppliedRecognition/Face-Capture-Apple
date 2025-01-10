@@ -12,6 +12,7 @@ public protocol FaceTrackingPlugin {
     var name: String { get }
     func run(inputStream: AsyncStream<FaceTrackingResult>) -> (String,Task<TaskResults,Error>)
     func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Element
+    func processFinalResults(_ faceTrackingResults: [FaceTrackingPluginResult<Element>]) async throws
     func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Element>]) async -> String
 }
 
@@ -29,10 +30,15 @@ public extension FaceTrackingPlugin {
                     results.append(result)
                 }
             }
+            try await self.processFinalResults(results)
             let summary = await self.createSummaryFromResults(results)
             return TaskResults(summary: summary, results: results)
         }
         return (self.name, task)
+    }
+    
+    func processFinalResults(_ faceTrackingResults: [FaceTrackingPluginResult<Element>]) async throws {
+        
     }
 }
 

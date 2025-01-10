@@ -25,7 +25,7 @@ public struct CapturedFace: Hashable {
     /// Captured image cropped to the bounds of the detected face
     /// - Since: 1.0.0
     public lazy var faceImage: UIImage? = {
-        guard let cgImage = try? self.image.convertToCGImage() else {
+        guard let cgImage = self.image.toCGImage() else {
             return nil
         }
         let renderer = UIGraphicsImageRenderer(size: face.bounds.size)

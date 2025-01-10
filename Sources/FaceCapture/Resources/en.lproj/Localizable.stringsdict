@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>tip_x_of_y</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@tips@</string>
+		<key>tips</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Tip %d of %d</string>
+			<key>other</key>
+			<string>Tip %d of %d</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

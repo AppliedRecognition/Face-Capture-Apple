@@ -79,7 +79,9 @@ struct EmbeddedView: View {
                 if let result = result {
                     self.session = nil
                     if case .cancelled = result {} else {
-                        self.navigationPath.append(result)
+                        Task { @MainActor in
+                            self.navigationPath.append(result)
+                        }
                     }
                 }
             }

@@ -108,6 +108,30 @@ extension FaceCaptureSessionModuleFactories {
             }
         })
     }
+    
+    static var withDepthBasedLiveness: FaceCaptureSessionModuleFactories {
+        let settings = Settings()
+        return .init(createFaceDetection: {
+            do {
+                switch settings.faceDetection {
+                case .apple:
+                    return AppleFaceDetection()
+                case .mediaPipe:
+                    return try FaceDetectionMediaPipe()
+                case .mediaPipeLandmarker:
+                    return try FaceLandmarkDetectionMediaPipe()
+                }
+            } catch {
+                return AppleFaceDetection()
+            }
+        }, createFaceTrackingPlugins: {
+            var plugins: [any FaceTrackingPlugin] = []
+            let livenessDetection = DepthLivenessDetection()
+            plugins.append(livenessDetection)
+            plugins.append(FPSMeasurementPlugin())
+            return plugins
+        }, createFaceTrackingResultTransformers: { [] })
+    }
 }
 
 enum FaceDetectionImplementation: String, CaseIterable {

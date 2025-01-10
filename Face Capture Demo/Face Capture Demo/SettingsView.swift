@@ -11,9 +11,8 @@ import FaceCapture
 
 struct SettingsView: View {
     
-    @ObservedObject var settings: Settings = Settings()
-    @State private var headColor: UIColor = .gray
-    @State private var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init())
+    @ObservedObject private var settings: Settings = Settings()
+    @ObservedObject private var head3DSettings = Head3DSettings()
     
     var body: some View {
         List {
@@ -23,7 +22,7 @@ struct SettingsView: View {
                 if self.settings.enableActiveLiveness {
                     VStack {
                         HStack {
-                            HeadView3D(headColor: self.$headColor, headAngle: self.$headAngle).frame(width: 125, height: 120)
+                            HeadView3D(headColor: self.$head3DSettings.colour, headAngle: self.$head3DSettings.angle).frame(width: 125, height: 120)
                             Spacer()
                         }
                         HStack {
@@ -54,11 +53,11 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .onChange(of: self.settings.yawThreshold) { yaw in
             let angle = EulerAngle(yaw: yaw, pitch: 0, roll: 0)
-            self.headAngle = (start: angle, end: angle)
+            self.head3DSettings.angle = (start: angle, end: angle)
         }
         .onAppear {
             let angle = EulerAngle(yaw: self.settings.yawThreshold, pitch: 0, roll: 0)
-            self.headAngle = (start: angle, end: angle)
+            self.head3DSettings.angle = (start: angle, end: angle)
         }
     }
 }
@@ -133,6 +132,12 @@ struct FaceOvalShape: Shape {
     func path(in rect: CGRect) -> Path {
         Path(ellipseIn: self.ellipseRectInSize(rect.size))
     }
+}
+
+fileprivate class Head3DSettings: ObservableObject {
+    
+    @Published var colour: UIColor = .gray
+    @Published var angle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init())
 }
 
 struct Settings_Previews: PreviewProvider {

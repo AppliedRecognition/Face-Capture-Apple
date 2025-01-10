@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FaceCapture
+import AVFoundation
 
 @main
 struct Face_Capture_DemoApp: App {
@@ -29,7 +30,9 @@ struct Face_Capture_DemoApp: App {
                         do {
                             try await self.faceCapture.load()
                         } catch {
-                            self.loadError = error
+                            await MainActor.run {
+                                self.loadError = error
+                            }
                         }
                     }
             }
@@ -38,5 +41,11 @@ struct Face_Capture_DemoApp: App {
 }
 
 func createFaceCaptureSession() -> FaceCaptureSession {
-    return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .fromDefaults)
+    let settings = Settings()
+    let cameraPosition: AVCaptureDevice.Position = settings.useBackCamera ? .back : .front
+    if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
+        return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .withDepthBasedLiveness)
+    } else {
+        return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .fromDefaults)
+    }
 }

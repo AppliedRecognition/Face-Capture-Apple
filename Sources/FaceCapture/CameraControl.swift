@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 import AVFoundation
+import UIKit
+import VerIDCommonTypes
 
 actor CameraControl {
     
@@ -33,7 +35,7 @@ actor CameraControl {
     }
     
     init(cameraPosition: AVCaptureDevice.Position) {
-        if let device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera], mediaType: .video, position: cameraPosition).devices.first {
+        if let device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera], mediaType: .video, position: cameraPosition).devices.first, device.formats.contains(where: { $0.supportedDepthDataFormats.contains(where: { CMFormatDescriptionGetMediaSubType($0.formatDescription) == kCVPixelFormatType_DepthFloat32 })}) {
             self.captureDevice = device
             self.supportsDepthCapture = true
         } else {
@@ -42,9 +44,12 @@ actor CameraControl {
         }
     }
     
-    func start() async throws -> AsyncStream<Capture> {
+    func start() async throws -> AsyncStream<Image> {
         if self.cameraDelegate.continuation != nil || self.captureSession.isRunning {
             throw FaceCaptureError.anotherCaptureSessionInProgress
+        }
+        await MainActor.run {
+            self.cameraDelegate.orientation = UIDevice.current.orientation.cgImagePropertyOrientation
         }
         try await self.requestCameraPermission()
         let videoDeviceInput = try AVCaptureDeviceInput(device: self.captureDevice)
@@ -63,7 +68,6 @@ actor CameraControl {
             self.captureSession.addOutput(self.deptDataOutput)
             if let connection = self.deptDataOutput.connection(with: .depthData) {
                 connection.isEnabled = true
-                
                 self.outputSynchronizer = AVCaptureDataOutputSynchronizer(dataOutputs: [self.videoDataOutput, self.deptDataOutput])
                 self.cameraDelegate.depthDataOutput = self.deptDataOutput
                 self.outputSynchronizer!.setDelegate(self.cameraDelegate, queue: self.dataOutputQueue)
@@ -77,7 +81,9 @@ actor CameraControl {
             defer {
                 self.captureDevice.unlockForConfiguration()
             }
-            self.captureDevice.activeDepthDataFormat = self.depthFormat(device: self.captureDevice)
+            if self.supportsDepthCapture {
+                self.captureDevice.activeDepthDataFormat = self.depthFormat(device: self.captureDevice)
+            }
             if self.captureDevice.isExposureModeSupported(AVCaptureDevice.ExposureMode.continuousAutoExposure) {
                 self.captureDevice.exposureMode = AVCaptureDevice.ExposureMode.continuousAutoExposure
             }
@@ -91,7 +97,7 @@ actor CameraControl {
             }
         }
         self.captureSession.startRunning()
-        let stream = AsyncStream<Capture>(bufferingPolicy: .bufferingNewest(1)) { continuation in
+        let stream = AsyncStream<Image>(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.cameraDelegate.continuation = continuation
         }
         return stream
@@ -139,15 +145,16 @@ actor CameraControl {
 
 fileprivate class CameraControlDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureDataOutputSynchronizerDelegate {
     
-    var continuation: AsyncStream<Capture>.Continuation?
+    var continuation: AsyncStream<Image>.Continuation?
     var videoDataOutput: AVCaptureVideoDataOutput?
     var depthDataOutput: AVCaptureDepthDataOutput?
+    var orientation: CGImagePropertyOrientation = .up
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let videoPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-        self.continuation?.yield(Capture(video: videoPixelBuffer, depth: nil))
+        self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation))
     }
     
     func dataOutputSynchronizer(_ synchronizer: AVCaptureDataOutputSynchronizer, didOutput synchronizedDataCollection: AVCaptureSynchronizedDataCollection) {
@@ -163,7 +170,7 @@ fileprivate class CameraControlDelegate: NSObject, AVCaptureVideoDataOutputSampl
         guard let videoPixelBuffer = CMSampleBufferGetImageBuffer(syncedVideoData.sampleBuffer) else {
             return
         }
-        self.continuation?.yield(Capture(video: videoPixelBuffer, depth: syncedDepthData.depthData))
+        self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation, depthData: syncedDepthData.depthData))
     }
 }
 

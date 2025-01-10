@@ -41,8 +41,10 @@ struct NavStackView: View {
         .navigationTitle(self.title)
         .navigationDestination(for: FaceCaptureSession.self) { session in
             FaceCaptureNavigationView(session: session, useBackCamera: self.useBackCamera) { result in
-                self.navigationPath.removeLast()
-                self.navigationPath.append(result)
+                Task { @MainActor in
+                    self.navigationPath.removeLast()
+                    self.navigationPath.append(result)
+                }
             }
         }
         .toolbar {

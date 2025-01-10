@@ -9,6 +9,8 @@ import SwiftUI
 
 public struct TipsView: View {
     
+    @State private var currentPage = 0
+    
     public init() {
         UIPageControl.appearance().currentPageIndicatorTintColor = .label
         UIPageControl.appearance().pageIndicatorTintColor = .gray
@@ -22,14 +24,10 @@ public struct TipsView: View {
     
     public var body: some View {
         if #available(iOS 14, *) {
-            TabView {
-                ForEach(self.tips) { tip in
-                    TipView(imageName: tip.imageName, text: tip.text)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .always))
+            PageView(views: self.tips.map({ TipView(imageName: $0.imageName, text: $0.text) }), currentPage: $currentPage)
+                .navigationTitle(String.localizedStringWithFormat(NSLocalizedString("tip_x_of_y", bundle: .module, comment: ""), self.currentPage + 1, self.tips.count))
         } else {
-            LegacyTipsView(tips: self.tips)
+            PageView(views: self.tips.map({ TipView(imageName: $0.imageName, text: $0.text) }), currentPage: $currentPage)
         }
     }
 }
@@ -60,72 +58,9 @@ public struct TipView: View {
 }
 
 struct TipContent: Identifiable {
-    var id: String {
-        self.imageName
-    }
+    let id = UUID()
     let imageName: String
     let text: LocalizedStringKey
-}
-
-struct LegacyTipsView: View {
-    
-    @State var selection: Int = 0
-    @State var offset: CGFloat = 0
-    
-    let tips: [TipContent]
-    
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            TipView(imageName: self.tips[self.selection].imageName, text: self.tips[self.selection].text)
-                .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
-                    .onChanged { value in
-                        self.offset = value.translation.width
-                    }
-                    .onEnded { value in
-                        self.offset = 0
-                        switch value.translation.width {
-                        case ...0:
-                            if self.selection < self.tips.count - 1 {
-                                self.selection += 1
-                            }
-                        case 0...:
-                            if selection > 0 {
-                                self.selection -= 1
-                            }
-                        default:
-                            print("no swipe")
-                        }
-                    })
-                .offset(x: self.offset)
-            HStack {
-                Button {
-                    self.selection = 0
-                } label: {
-                    DotView(selected: self.selection == 0)
-                }
-                Button {
-                    self.selection = 1
-                } label: {
-                    DotView(selected: self.selection == 1)
-                }.padding(.horizontal, 4)
-                Button {
-                    self.selection = 2
-                } label: {
-                    DotView(selected: self.selection == 2)
-                }
-            }
-            .padding(.bottom, 32)
-        }
-    }
-}
-
-struct DotView: View {
-    
-    let selected: Bool
-    
-    var body: some View {
-        Circle().fill(self.selected ? Color(.label) : Color.gray).frame(width: 10, height: 10)
-    }
 }
 
 struct TipsView_Previews: PreviewProvider {

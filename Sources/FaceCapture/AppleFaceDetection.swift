@@ -22,8 +22,7 @@ public class AppleFaceDetection: FaceDetection {
     /// - Returns: Array of detected faces
     /// - Since: 1.0.0
     public func detectFacesInImage(_ image: Image, limit: Int=1) throws -> [Face] {
-        let cgImage = try image.convertToCGImage()
-        let handler = VNImageRequestHandler(cgImage: cgImage)
+        let handler = VNImageRequestHandler(cvPixelBuffer: image.videoBuffer)
         let faceLandmarksRequest = VNDetectFaceLandmarksRequest()
         faceLandmarksRequest.revision = VNDetectFaceLandmarksRequestRevision3
         let faceQualityRequest = VNDetectFaceCaptureQualityRequest()
@@ -31,8 +30,8 @@ public class AppleFaceDetection: FaceDetection {
         guard let landmarkResults = faceLandmarksRequest.results, let qualityResults = faceQualityRequest.results else {
             return []
         }
-        let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-        let transform = CGAffineTransform(scaleX: CGFloat(cgImage.width), y: CGFloat(0-cgImage.height)).concatenating(CGAffineTransform(translationX: 0, y: CGFloat(cgImage.height)))
+        let imageSize = image.size
+        let transform = CGAffineTransform(scaleX: CGFloat(image.width), y: CGFloat(0-image.height)).concatenating(CGAffineTransform(translationX: 0, y: CGFloat(image.height)))
         let faces: [Face] = zip(landmarkResults, qualityResults).compactMap { (landmarkFace, qualityFace) -> Face? in
             let pitch: NSNumber
             if #available(iOS 15, *) {
@@ -44,14 +43,30 @@ public class AppleFaceDetection: FaceDetection {
                 return nil
             }
             let angle = EulerAngle<Float>(yaw: Float(Measurement(value: yaw.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), pitch: Float(Measurement(value: pitch.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), roll: Float(Measurement(value: roll.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value))
-            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize) ?? [])
+            let mouth: CGPoint?
+            if let innerLips = landmarkFace.landmarks?.innerLips?.pointsInImage(imageSize: imageSize) {
+                let averageX = innerLips.map({ $0.x }).reduce(0, +) / CGFloat(innerLips.count)
+                let averageY = innerLips.map({ $0.y }).reduce(0, +) / CGFloat(innerLips.count)
+                mouth = CGPoint(x: averageX, y: averageY)
+            } else {
+                mouth = nil
+            }
+            return Face(
+                bounds: landmarkFace.boundingBox.applying(transform),
+                angle: angle,
+                quality: qualityFace.faceCaptureQuality ?? 1,
+                landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize) ?? [],
+                leftEye: landmarkFace.landmarks?.leftPupil?.pointsInImage(imageSize: imageSize).first ?? .zero,
+                rightEye: landmarkFace.landmarks?.rightPupil?.pointsInImage(imageSize: imageSize).first ?? .zero,
+                noseTip: landmarkFace.landmarks?.noseCrest?.pointsInImage(imageSize: imageSize).max(by: { $0.y < $1.y }),
+                mouthCentre: mouth
+            )
         }
         return faces.sorted()
     }
     
     private func detectFacesInImageBoundsFirst(_ image: Image, limit: Int=1) throws -> [Face] {
-        let cgImage = try image.convertToCGImage()
-        let handler = VNImageRequestHandler(cgImage: cgImage)
+        let handler = VNImageRequestHandler(cvPixelBuffer: image.videoBuffer)
         let faceBoundsRequest = VNDetectFaceRectanglesRequest()
         faceBoundsRequest.revision = VNDetectFaceRectanglesRequestRevision2
         try handler.perform([faceBoundsRequest])
@@ -69,8 +84,8 @@ public class AppleFaceDetection: FaceDetection {
         guard let landmarkResults = faceLandmarksRequest.results, let qualityResults = faceQualityRequest.results else {
             return []
         }
-        let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-        let transform = CGAffineTransform(scaleX: CGFloat(cgImage.width), y: CGFloat(0-cgImage.height)).concatenating(CGAffineTransform(translationX: 0, y: CGFloat(cgImage.height)))
+        let imageSize = image.size
+        let transform = CGAffineTransform(scaleX: imageSize.width, y: 0-imageSize.height).concatenating(CGAffineTransform(translationX: 0, y: imageSize.height))
         let faces: [Face] = zip(landmarkResults, qualityResults).compactMap { (landmarkFace: VNFaceObservation, qualityFace: VNFaceObservation) -> Face? in
             let pitch: NSNumber
             if #available(iOS 15, *) {
@@ -82,7 +97,25 @@ public class AppleFaceDetection: FaceDetection {
                 return nil
             }
             let angle = EulerAngle<Float>(yaw: Float(Measurement(value: yaw.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), pitch: Float(Measurement(value: pitch.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value), roll: Float(Measurement(value: roll.doubleValue, unit: UnitAngle.radians).converted(to: .degrees).value))
-            return Face(bounds: landmarkFace.boundingBox.applying(transform), angle: angle, quality: qualityFace.faceCaptureQuality ?? 1, landmarks: landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize) ?? [])
+            let landmarks = landmarkFace.landmarks?.allPoints?.pointsInImage(imageSize: imageSize)
+            let mouth: CGPoint?
+            if let innerLips = landmarkFace.landmarks?.innerLips?.pointsInImage(imageSize: imageSize) {
+                let averageX = innerLips.map({ $0.x }).reduce(0, +) / CGFloat(innerLips.count)
+                let averageY = innerLips.map({ $0.y }).reduce(0, +) / CGFloat(innerLips.count)
+                mouth = CGPoint(x: averageX, y: averageY)
+            } else {
+                mouth = nil
+            }
+            return Face(
+                bounds: landmarkFace.boundingBox.applying(transform),
+                angle: angle,
+                quality: qualityFace.faceCaptureQuality ?? 1,
+                landmarks: landmarks ?? [],
+                leftEye: landmarkFace.landmarks?.leftPupil?.pointsInImage(imageSize: imageSize).first ?? .zero,
+                rightEye: landmarkFace.landmarks?.rightPupil?.pointsInImage(imageSize: imageSize).first ?? .zero,
+                noseTip: landmarkFace.landmarks?.noseCrest?.pointsInImage(imageSize: imageSize).max(by: { $0.y < $1.y }),
+                mouthCentre: mouth
+            )
         }
         return faces.sorted()
     }

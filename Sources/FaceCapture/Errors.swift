@@ -49,18 +49,20 @@ public enum FaceCaptureError: Error, CustomStringConvertible, LocalizedError {
         }
     }
     
-    /// Localized description of the error
-    /// - Since: 1.0.0
-    public var localizedDescription: String {
+    public var errorDescription: String? {
         switch self {
+        case .anotherCaptureSessionInProgress:
+            return NSLocalizedString("Another capture session in progress", comment: "")
+        case .sessionTimedOut:
+            return NSLocalizedString("Session timed out", comment: "")
         case .resourceBundleMissingFile(let file):
-            String(format: NSLocalizedString("Missing file %@ in resource bundle", comment: ""), file)
+            return String(format: NSLocalizedString("Missing file %@ in resource bundle", comment: ""), file)
         case .activeLivenessCheckFailed(let failure):
-            String(format: NSLocalizedString("Active liveness check failed: %@", comment: ""), NSLocalizedString(failure.rawValue, comment: ""))
+            return String(format: NSLocalizedString("Active liveness check failed: %@", comment: ""), NSLocalizedString(failure.rawValue, comment: ""))
         case .passiveLivenessCheckFailed(let failure):
-            String(format: NSLocalizedString("Passive liveness check failed: %@", comment: ""), NSLocalizedString(failure, comment: ""))
-        default:
-            NSLocalizedString(self.description, comment: "")
+            return String(format: NSLocalizedString("Passive liveness check failed: %@", comment: ""), NSLocalizedString(failure, comment: ""))
+        case .invalidFaceTrackingResult:
+            return NSLocalizedString("Invalid face tracking result", comment: "")
         }
     }
 }

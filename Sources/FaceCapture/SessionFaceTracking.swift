@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import Accelerate
 import VerIDCommonTypes
+import AVFoundation
 
 final class SessionFaceTracking {
     
@@ -46,7 +47,10 @@ final class SessionFaceTracking {
     
     func trackFace(in imageCapture: FaceCaptureSessionImageInput) async throws -> FaceTrackingResult {
         let imageSize = imageCapture.image.size
-        let expectedFaceBounds = self.settings.expectedFaceBoundsInSize(imageSize)
+        let rect = AVMakeRect(aspectRatio: imageCapture.viewSize, insideRect: CGRect(origin: .zero, size: imageSize))
+        var expectedFaceBounds = self.settings.expectedFaceBoundsInSize(rect.size)
+        expectedFaceBounds.origin.x += rect.minX
+        expectedFaceBounds.origin.y += rect.minY
         if let face = try self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first {
             let alignedFace = AlignedFace(face)
             self.faces.append(alignedFace)
@@ -166,7 +170,27 @@ final class SessionFaceTracking {
         let angle = EulerAngle(yaw: yaw, pitch: pitch, roll: roll)
         let quality = vDSP.mean(tail.map { $0.face.quality })
         let landmarks = self.meanLandmarks(from: tail.compactMap { $0.face.landmarks })
-        return Face(bounds: bounds, angle: angle, quality: quality, landmarks: landmarks)
+        let leftEyeX = vDSP.mean(tail.map { Double($0.face.leftEye.x) })
+        let leftEyeY = vDSP.mean(tail.map { Double($0.face.leftEye.y) })
+        let rightEyeX = vDSP.mean(tail.map { Double($0.face.rightEye.x) })
+        let rightEyeY = vDSP.mean(tail.map { Double($0.face.rightEye.y) })
+        let leftEye = CGPoint(x: leftEyeX, y: leftEyeY)
+        let rightEye = CGPoint(x: rightEyeX, y: rightEyeY)
+        let noseTipArray = tail.compactMap({ $0.face.noseTip })
+        var noseTip: CGPoint? = nil
+        if !noseTipArray.isEmpty {
+            let noseTipX = vDSP.mean(noseTipArray.map { Double($0.x) })
+            let noseTipY = vDSP.mean(noseTipArray.map { Double($0.y) })
+            noseTip = CGPoint(x: noseTipX, y: noseTipY)
+        }
+        let mouthCentreArray = tail.compactMap({ $0.face.mouthCentre })
+        var mouthCentre: CGPoint? = nil
+        if !mouthCentreArray.isEmpty {
+            let mouthCentreX = vDSP.mean(mouthCentreArray.map { Double($0.x) })
+            let mouthCentreY = vDSP.mean(mouthCentreArray.map { Double($0.y) })
+            mouthCentre = CGPoint(x: mouthCentreX, y: mouthCentreY)
+        }
+        return Face(bounds: bounds, angle: angle, quality: quality, landmarks: landmarks, leftEye: leftEye, rightEye: rightEye, noseTip: noseTip, mouthCentre: mouthCentre)
     }
     
     private func meanLandmarks(from landmarks: [[CGPoint]]) -> [CGPoint] {

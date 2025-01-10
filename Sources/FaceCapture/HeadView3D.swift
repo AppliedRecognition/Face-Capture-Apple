@@ -28,6 +28,11 @@ public struct HeadView3D: UIViewRepresentable {
         uiView.headAngle = self.headAngle
     }
     
+    public static func dismantleUIView(_ uiView: HeadUIView3D, coordinator: ()) {
+        uiView.cleanup()
+        uiView.layer.removeAllAnimations()
+    }
+    
     public init(headColor: Binding<UIColor>, headAngle: Binding<(start: EulerAngle<Float>, end: EulerAngle<Float>)>) {
         self._headColor = headColor
         self._headAngle = headAngle
@@ -38,7 +43,10 @@ public class HeadUIView3D: SCNView {
     
     var headColor: UIColor = .gray {
         didSet {
-            self.headNode.geometry?.materials.forEach { material in
+            guard let headNode = self.headNode else {
+                return
+            }
+            headNode.geometry?.materials.forEach { material in
                 material.diffuse.contents = self.headColor
             }
         }
@@ -48,13 +56,16 @@ public class HeadUIView3D: SCNView {
     
     var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init()) {
         didSet {
-            self.camera.fieldOfView = CGFloat(atan2(self.headNode.boundingSphere.radius*2.2, self.cameraNode.position.z) / .pi * 180)
+            guard let camera = self.camera, let headNode = self.headNode, let cameraNode = self.cameraNode else {
+                return
+            }
+            camera.fieldOfView = CGFloat(atan2(headNode.boundingSphere.radius*2.2, cameraNode.position.z) / .pi * 180)
             if self.isAnimating {
                 return
             }
             if self.headAngle.start == self.headAngle.end {
-                self.headNode.eulerAngles.y = self.headAngle.start.yaw / 180 * .pi
-                self.headNode.eulerAngles.x = self.headAngle.start.pitch / 180 * .pi
+                headNode.eulerAngles.y = self.headAngle.start.yaw / 180 * .pi
+                headNode.eulerAngles.x = self.headAngle.start.pitch / 180 * .pi
                 return
             }
             let startPitch = self.headAngle.start.pitch / 180 * .pi
@@ -75,14 +86,14 @@ public class HeadUIView3D: SCNView {
             animation.fillMode = .forwards
             animation.isRemovedOnCompletion = false
             animation.animations = [yawAnimation, pitchAnimation]
-            self.headNode.removeAnimation(forKey: "rotation")
-            self.headNode.addAnimation(animation, forKey: "rotation")
+            headNode.removeAnimation(forKey: "rotation")
+            headNode.addAnimation(animation, forKey: "rotation")
         }
     }
     
-    private var headNode: SCNNode!
-    private var cameraNode: SCNNode!
-    private var camera: SCNCamera!
+    private var headNode: SCNNode?
+    private var cameraNode: SCNNode?
+    private var camera: SCNCamera?
     
     override init(frame: CGRect) {
         super.init(frame: frame, options: nil)
@@ -109,25 +120,42 @@ public class HeadUIView3D: SCNView {
         self.scene = try? SCNScene(url: modelURL)
         
         self.headNode = self.scene!.rootNode.childNodes.first!
-        self.headNode.geometry?.materials.forEach { material in
+        self.headNode?.geometry?.materials.forEach { material in
             material.diffuse.contents = self.headColor
         }
         self.cameraNode = SCNNode()
         self.camera = SCNCamera()
-        self.camera.name = "headCam"
-        self.camera.projectionDirection = .vertical
-        self.camera.fieldOfView = 30
-        self.cameraNode.position = SCNVector3(x: 0, y: 0, z: 10)
-        self.cameraNode.camera = self.camera
+        self.camera?.name = "headCam"
+        self.camera?.projectionDirection = .vertical
+        self.camera?.fieldOfView = 30
+        self.cameraNode?.position = SCNVector3(x: 0, y: 0, z: 10)
+        self.cameraNode?.camera = self.camera
         self.pointOfView = self.cameraNode
         let lightNode = SCNNode()
-        let headConstraint = SCNLookAtConstraint(target: self.headNode)
+        let headConstraint = SCNLookAtConstraint(target: self.headNode!)
         lightNode.constraints = [headConstraint]
         lightNode.light = SCNLight()
         lightNode.light?.type = .omni
         lightNode.position = SCNVector3(x: 0, y: 10, z: 10)
-        self.scene?.rootNode.addChildNode(self.cameraNode)
+        self.scene?.rootNode.addChildNode(self.cameraNode!)
         self.scene?.rootNode.addChildNode(lightNode)
+    }
+    
+    func cleanup() {
+        self.scene?.isPaused = true
+        self.scene?.rootNode.childNodes.forEach {
+            $0.constraints = nil
+            $0.removeFromParentNode()
+        }
+        self.scene?.rootNode.constraints = nil
+        self.scene = nil
+        self.isPlaying = false
+        self.headNode?.removeAllAnimations()
+        self.headNode?.geometry = nil
+        self.headNode = nil
+        self.camera = nil
+        self.cameraNode = nil
+        self.isAnimating = false
     }
 }
 

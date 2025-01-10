@@ -70,7 +70,7 @@ struct SessionView: View {
     @State private var orientation: CGImagePropertyOrientation = UIDevice.current.orientation.cgImagePropertyOrientation
     @State private var videoOrientation: AVCaptureVideoOrientation?
     @State private var cameraTask: Task<(),Error>? = nil
-    @State private var cameraStream: AsyncStream<Capture>? = nil
+    @State private var cameraStream: AsyncStream<VerIDCommonTypes.Image>? = nil
     @State private var startCameraTask: Task<(),Error>? = nil
     @State private var faceTrackingResult: FaceTrackingResult = .created(.straight)
     @State private var lineWidth: CGFloat = 10
@@ -202,7 +202,7 @@ struct SessionView: View {
                             self.session.cancel()
                             self.presentationMode.wrappedValue.dismiss()
                         } label: {
-                            Text("Cancel")
+                            Text("Cancel", bundle: .module)
                         }
                             .padding(.bottom, 48)
                     }
@@ -250,16 +250,18 @@ struct SessionView: View {
                     break
                 }
                 let viewSize = geometryReader.size
-                if var image = try? sample.video.convertToImage(), viewSize != .zero {
-                    do {
-                        try image.applyOrientation(self.orientation)
-                    } catch {}
-                    let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: image.size))
-                    image.cropToRect(rect)
-                    self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image))
-                    serialNumber += 1
-                }
-//                if serialNumber > 10, let depthMap = sample.depth, let pointCloud = pointCloudFromDepthData(depthMap), let objUrl = objUrl, !FileManager.default.fileExists(atPath: objUrl.path) {
+                self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: sample, viewSize: viewSize))
+                serialNumber += 1
+//                if var image = try? sample.video.convertToImage(), viewSize != .zero {
+//                    do {
+//                        try image.applyOrientation(self.orientation)
+//                    } catch {}
+//                    let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: image.size))
+//                    image.cropToRect(rect)
+//                    self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image))
+//                    serialNumber += 1
+//                }
+//                if serialNumber > 10, let depthMap = sample.depth, let pointCloud = DepthDataConverter.default.pointCloudFromDepthData(depthMap), let objUrl = objUrl, !FileManager.default.fileExists(atPath: objUrl.path) {
 //                    var obj = "# OBJ file\n"
 //                    for pt in pointCloud {
 //                        if !pt.x.isNaN && !pt.y.isNaN && !pt.z.isNaN && pt.x.isFinite && pt.y.isFinite && pt.z.isFinite {
@@ -282,17 +284,13 @@ struct SessionView: View {
         switch result {
         case .faceAligned, .faceFixed, .faceMisaligned, .faceCaptured:
             guard viewSize != .zero else {
-                NSLog("Returning identity transform for result \(faceTrackingResult.description) – view size is 0")
                 return .identity
             }
             guard let expectedFaceBounds = result.expectedFaceBounds, let faceBounds = result.smoothedFace?.bounds else {
-                NSLog("Returning identity transform for result \(faceTrackingResult.description) – no face bounds")
                 return .identity
             }
-            NSLog("Returning transform for result \(faceTrackingResult.description)")
             return CGAffineTransform.rect(faceBounds, to: expectedFaceBounds)
         default:
-            NSLog("Returning identity transform for result \(faceTrackingResult.description)")
             return .identity
         }
     }
@@ -308,45 +306,5 @@ fileprivate extension View {
             return self.allowedDynamicRange(.high)
         }
         return self
-    }
-}
-
-fileprivate extension CVPixelBuffer {
-    
-    func convertToImage() throws -> VerIDCommonTypes.Image {
-        CVPixelBufferLockBaseAddress(self, .readOnly)
-        defer {
-            CVPixelBufferUnlockBaseAddress(self, .readOnly)
-        }
-        guard let data = CVPixelBufferGetBaseAddress(self) else {
-            throw ImageError.imageConversionFailed
-        }
-        let format = CVPixelBufferGetPixelFormatType(self)
-        let imageFormat: ImageFormat
-        switch format {
-        case kCVPixelFormatType_32ABGR:
-            imageFormat = .abgr
-        case kCVPixelFormatType_32ARGB:
-            imageFormat = .argb
-        case kCVPixelFormatType_32BGRA:
-            imageFormat = .bgra
-        case kCVPixelFormatType_32RGBA:
-            imageFormat = .rgba
-        case kCVPixelFormatType_24BGR:
-            imageFormat = .bgr
-        case kCVPixelFormatType_24RGB:
-            imageFormat = .rgb
-        case kCVPixelFormatType_OneComponent8:
-            imageFormat = .grayscale
-        default:
-            throw ImageError.imageConversionFailed
-        }
-        let width = CVPixelBufferGetWidth(self)
-        let height = CVPixelBufferGetHeight(self)
-        let rowBytes = CVPixelBufferGetBytesPerRow(self)
-        let length = CVPixelBufferGetDataSize(self)
-        let uint8ptr = data.bindMemory(to: UInt8.self, capacity: length)
-        
-        return Image(data: Data(buffer: UnsafeBufferPointer<UInt8>(start: uint8ptr, count: length)), width: width, height: height, bytesPerRow: rowBytes, format: imageFormat)
     }
 }

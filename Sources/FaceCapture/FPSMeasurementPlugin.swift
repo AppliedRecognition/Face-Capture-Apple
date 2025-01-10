@@ -8,17 +8,17 @@
 import Foundation
 import UIKit
 
-class FPSMeasurementPlugin: FaceTrackingPlugin {
-    typealias Element = FPSMeasurement
-    let name: String = "FPS measurement"
+public class FPSMeasurementPlugin: FaceTrackingPlugin {
+    public typealias Element = FPSMeasurement
+    public let name: String = "FPS measurement"
     
     var times: [TimeInterval]
     
-    init() {
+    public init() {
         self.times = []
     }
     
-    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> FPSMeasurement {
+    public func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> FPSMeasurement {
         guard let time = faceTrackingResult.time else {
             throw FaceCaptureError.invalidFaceTrackingResult
         }
@@ -35,7 +35,7 @@ class FPSMeasurementPlugin: FaceTrackingPlugin {
         return FPSMeasurement(lastSecond: lastSecond, sinceStart: sinceStart)
     }
     
-    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<FPSMeasurement>]) async -> String {
+    public func createSummaryFromResults(_ results: [FaceTrackingPluginResult<FPSMeasurement>]) async -> String {
         if let fps = results.last?.result.sinceStart {
             return String(format: "%.01f frames per second", fps)
         } else {
@@ -44,7 +44,7 @@ class FPSMeasurementPlugin: FaceTrackingPlugin {
     }
 }
 
-struct FPSMeasurement: Encodable {
+public struct FPSMeasurement: Encodable {
     let lastSecond: Double
     let sinceStart: Double
 }
