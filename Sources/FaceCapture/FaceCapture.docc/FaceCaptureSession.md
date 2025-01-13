@@ -10,10 +10,6 @@ changes the value of its ``result`` property. The possible results are:
 - ``FaceCaptureSessionResult/failure(capturedFaces:metadata:error:)``: the session failed,
 - ``FaceCaptureSessionResult/cancelled``: the session was cancelled by the user.
 
->Important: Before starting a session you should load the face capture library using one of the 
-``FaceCapture/FaceCapture/load()`` methods. Otherwise the session will attempt to load the library using a Ver-ID.identity 
-file in your app's main bundle. 
-
 ## Session modules
 
 Each session has three categories of modules that alter the way it behaves:

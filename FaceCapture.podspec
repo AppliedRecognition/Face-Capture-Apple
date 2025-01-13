@@ -13,6 +13,5 @@ Pod::Spec.new do |spec|
   spec.resource_bundles = {"FaceCapture" => ["Sources/FaceCapture/Resources/**/*"] }
   spec.dependency "VerIDCommonTypes", "~> 1.0.0"
   spec.dependency "LivenessDetectionCore", "~> 1.0.0"
-  spec.dependency "VerIDLicence", "~> 1.0.0"
 
 end

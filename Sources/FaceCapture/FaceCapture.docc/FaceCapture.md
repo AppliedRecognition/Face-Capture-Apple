@@ -12,42 +12,7 @@ The library runs on iOS 13 or newer. ``FaceCaptureNavigationView`` and ``FaceCap
 
 ## Getting started
 
-1. Obtain a Ver-ID identity for your app on the [Ver-ID licensing website](https://licensing.ver-id.com). Your app's bundle 
-identifier must match the identifier on the licence.
-2. Copy the Ver-ID.identity file to your app's main bundle.
-3. Load the library. For example, you can do this in one of your app view's' `task` modifier.
-
-    ```swift
-    import SwiftUI
-    import FaceCapture
-
-    @main
-    struct MyApp: App {
-
-        @State var error: Error?
-        @StateObject var faceCapture: FaceCapture = .default
-
-        var body: some Scene {
-            WindowGroup {
-                if self.faceCapture.isLoaded {
-                    MyView()
-                } else if let error = self.error {
-                    Text("Failed to load face capture: \(error.localizedDescription)")
-                } else {
-                    ProgressView("Loading")
-                        .task {
-                            do {
-                                try await self.faceCapture.load()
-                            } catch {
-                                self.error = error
-                            }
-                        }
-                }
-            }
-        }
-    }
-    ```
-4. Add a ``FaceCaptureView`` in your SwiftUI view layout. In the following example the face capture session is presented in 
+1. Add a ``FaceCaptureView`` in your SwiftUI view layout. In the following example the face capture session is presented in 
 a modal sheet.
 
     ```swift
@@ -81,7 +46,7 @@ a modal sheet.
         }
     }
     ```
-5. Extract the captured face and image from the session result.
+2. Extract the captured face and image from the session result.
 
     ```swift
     let result: FaceCaptureSessionResult // result from a face capture session 
@@ -113,10 +78,6 @@ a modal sheet.
     ```
 
 ## Topics
-
-### Loading the library
-
-- ``FaceCapture/FaceCapture``
 
 ### Face capture session essentials
 
