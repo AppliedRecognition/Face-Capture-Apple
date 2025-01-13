@@ -4,13 +4,6 @@ import VerIDCommonTypes
 
 final class FaceCaptureSessionTests: XCTestCase {
     
-    override func setUp() async throws {
-        guard let identityURL = Bundle.module.url(forResource: "Ver-ID", withExtension: "identity", subdirectory: nil) else {
-            throw NSError()
-        }
-        try await FaceCapture.default.load(identityFileURL: identityURL)
-    }
-    
     func testSession() throws {
         let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), sessionModuleFactories: FaceCaptureSessionModuleFactories(createFaceDetection: { MockFaceDetection() }, createFaceTrackingPlugins: { [] }, createFaceTrackingResultTransformers: { [] }))
         var serial: UInt64 = 0

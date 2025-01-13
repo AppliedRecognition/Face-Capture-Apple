@@ -42,6 +42,10 @@ let package = Package(
             name: "FaceCaptureTests",
             dependencies: [
                 "FaceCapture",
+                .product(
+                    name: "LivenessDetection",
+                    package: "Liveness-Detection-Core-Apple"
+                ),
                 .product(name: "VerIDCommonTypes", package: "Ver-ID-Common-Types-Apple")
             ],
             resources: [
