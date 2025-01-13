@@ -214,9 +214,9 @@ public struct FaceCaptureSessionModuleFactories {
     public let createFaceTrackingResultTransformers: () -> [FaceTrackingResultTransformer]
     
     public init(
-        createFaceDetection: @escaping () -> FaceDetection,
-        createFaceTrackingPlugins: @escaping () -> [any FaceTrackingPlugin],
-        createFaceTrackingResultTransformers: @escaping () -> [FaceTrackingResultTransformer]
+        createFaceDetection: @escaping () -> FaceDetection = { AppleFaceDetection() },
+        createFaceTrackingPlugins: @escaping () -> [any FaceTrackingPlugin] = { [] },
+        createFaceTrackingResultTransformers: @escaping () -> [FaceTrackingResultTransformer] = { [] }
     ) {
         self.createFaceDetection = createFaceDetection
         self.createFaceTrackingPlugins = createFaceTrackingPlugins
