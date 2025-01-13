@@ -71,3 +71,16 @@ public enum ActiveLivenessFailure: String {
     case faceLost = "Face lost"
     case faceMovedOpposite = "Face moved in opposite direction"
 }
+
+public struct GenericError: Error, LocalizedError {
+    
+    private let desc: String
+    
+    init(description: String) {
+        self.desc = description
+    }
+    
+    public var errorDescription: String? {
+        return NSLocalizedString(self.desc, comment: "")
+    }
+}

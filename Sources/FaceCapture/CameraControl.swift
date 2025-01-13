@@ -132,11 +132,11 @@ actor CameraControl {
                         if granted {
                             cont.resume()
                         } else {
-                            cont.resume(throwing: "Camera access denied")
+                            cont.resume(throwing: GenericError(description: "Camera access denied"))
                         }
                     })
                 default:
-                    cont.resume(throwing: "Camera not authorized or available")
+                    cont.resume(throwing: GenericError(description: "Camera not authorized or available"))
                 }
             }
         }
