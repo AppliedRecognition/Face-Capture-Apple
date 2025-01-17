@@ -33,14 +33,12 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
             let scaleTransform = CGAffineTransform(scaleX: scaleX, y: scaleY)
             let depthFace = face.applying(scaleTransform)
             if let landmarkDepths = self.depthAtPoints([depthFace.leftEye, depthFace.rightEye, depthFace.noseTip!, depthFace.mouthCentre!], depthData: depthData.depthDataMap), !landmarkDepths[0...3].contains(where: { depth in depth.isNaN || depth.isInfinite || depth <= 0 }) {
-                if landmarkDepths[2] < 0.015 {
-                    throw FaceCaptureError.passiveLivenessCheckFailed("Face is close to the camera")
-                } else if landmarkDepths[2] > 1.5 {
-                    throw FaceCaptureError.passiveLivenessCheckFailed("Face is too far from the camera")
-                }
                 let mouthEyePlaneDepth = (landmarkDepths[0] + landmarkDepths[1] + landmarkDepths[3]) / 3
                 if mouthEyePlaneDepth - landmarkDepths[2] < 0.02 {
                     throw FaceCaptureError.passiveLivenessCheckFailed("Face doesn't match expected topography")
+                }
+                if landmarkDepths[2] > 1.2 {
+                    throw FaceCaptureError.passiveLivenessCheckFailed("Face is too far from the camera")
                 }
                 return true
             }
