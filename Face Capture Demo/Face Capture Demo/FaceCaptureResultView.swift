@@ -15,6 +15,7 @@ struct FaceCaptureResultView: View {
     let result: FaceCaptureSessionResult
     let title: String
     @State var isPresentingShareSheet = false
+    @State var zippedResult: Data? = nil
     
     init(result: FaceCaptureSessionResult) {
         self.result = result
@@ -66,17 +67,32 @@ struct FaceCaptureResultView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .disabled(self.result.capturedFaces.isEmpty)
+                .disabled(self.zippedResult == nil)
             }
         }
         .sheet(isPresented: self.$isPresentingShareSheet) {
-            if let capture = self.result.capturedFaces.first, let data = try? capture.image.serialized(), let image = capture.image.toCGImage() {
-                ShareSheet(items: [Image3DActivityItem(data: data, name: "Image", image: UIImage(cgImage: image))])
+            if let zip = self.zippedResult, let image = self.result.capturedFaces.first?.image.toCGImage() {
+                ShareSheet(items: [Image3DActivityItem(data: zip, name: "Image", image: UIImage(cgImage: image))])
             }
 //            if let cgImage = self.result.capturedFaces.first?.image.toCGImage() {
 //                let uiImage = UIImage(cgImage: cgImage)
 //                ShareSheet(items: [uiImage])
 //            }
+        }
+        .task {
+            if let capture = self.result.capturedFaces.first, 
+                let imageData = try? capture.image.serialized(),
+                let faceData = try? capture.face.serialized()
+            {
+                let imageSize = UInt32(imageData.count)
+                var data = Data()
+                data.append(contentsOf: withUnsafeBytes(of: imageSize.bigEndian, Array.init))
+                data.append(imageData)
+                let faceSize = UInt32(faceData.count)
+                data.append(contentsOf: withUnsafeBytes(of: faceSize.bigEndian, Array.init))
+                data.append(faceData)
+                self.zippedResult = data
+            }
         }
     }
 }
