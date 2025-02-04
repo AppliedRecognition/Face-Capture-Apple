@@ -32,20 +32,16 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
             let scaleY = depthSize.height/imageSize.height
             let scaleTransform = CGAffineTransform(scaleX: scaleX, y: scaleY)
             let depthFace = face.applying(scaleTransform)
-            if let landmarkDepths = self.depthAtPoints([depthFace.leftEye, depthFace.rightEye, depthFace.noseTip!, depthFace.mouthCentre!], depthData: depthData.depthDataMap), !landmarkDepths[0...3].contains(where: { depth in depth.isNaN || depth.isInfinite || depth <= 0 }) {
-                let mouthEyePlaneDepth = (landmarkDepths[0] + landmarkDepths[1] + landmarkDepths[3]) / 3
-                if mouthEyePlaneDepth - landmarkDepths[2] < 0.02 {
-                    throw FaceCaptureError.passiveLivenessCheckFailed("Face doesn't match expected topography")
-                }
-                if landmarkDepths[2] > 1.2 {
-                    throw FaceCaptureError.passiveLivenessCheckFailed("Face is too far from the camera")
-                }
-                return true
+            let points3d = self.points3Dfrom2D([depthFace.leftEye, depthFace.rightEye, depthFace.mouthCentre!, depthFace.noseTip!] + depthFace.landmarks, depthData: depthData.depthDataMap)
+            if !points3d[3].z.isNaN && points3d[3].z > 1.5 {
+                throw FaceCaptureError.passiveLivenessCheckFailed("Face is not within the expected camera range")
             }
+            let planePoints = Array(points3d[0..<3]).filter({ !$0.z.isNaN })
+            let testPoints = points3d.dropFirst(3).filter { !$0.z.isNaN && !planePoints.contains($0) }
+            return try self.checkFaceIs3D(planePoints: planePoints, testPoints: testPoints)
         default:
             return false
         }
-        return false
     }
     
     public func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Bool>]) async -> String {
@@ -57,46 +53,60 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
     
     public typealias Element = Bool
     
-    private func depthAtPoints(_ points: [CGPoint], depthData: CVPixelBuffer) -> [Float]? {
+    private func checkFaceIs3D(planePoints: [Point3D], testPoints: [Point3D], planeDistThreshold: CGFloat = 0.02) throws -> Bool {
+        if (planePoints.count != 3 || testPoints.isEmpty) {
+            return false
+        }
+        let p1 = planePoints[0]
+        let p2 = planePoints[1]
+        let p3 = planePoints[2]
+        let v1 = Point3D(x: p2.x - p1.x, y: p2.y - p1.y, z: p2.z - p1.z)
+        let v2 = Point3D(x: p3.x - p1.x, y: p3.y - p1.y, z: p3.z - p1.z)
+        let normal = Point3D(
+            x: v1.y * v2.z - v1.z * v2.y,
+            y: v1.z * v2.x - v1.x * v2.z,
+            z: v1.x * v2.y - v1.y * v2.x
+        )
+        func distanceToPlane(_ pt: Point3D) -> CGFloat {
+            let d = (normal.x * (pt.x - p1.x)
+                     + normal.y * (pt.y - p1.y)
+                     + normal.z * (pt.z - p1.z))
+            let normLen = sqrt(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z)
+            return abs(d) / normLen
+        }
+        if testPoints.count == 1 {
+            if distanceToPlane(testPoints[0]) > planeDistThreshold {
+                return true
+            }
+        } else {
+            let distances = testPoints.map { Double(distanceToPlane($0)) }
+            let mean = vDSP.mean(distances)
+            let variance = vDSP.mean(distances.map { ($0 - mean) * ($0 - mean) })
+            let stdDev = sqrt(variance)
+            if stdDev > planeDistThreshold {
+                return true
+            }
+        }
+        throw FaceCaptureError.passiveLivenessCheckFailed("Face doesn't match expected topography")
+    }
+    
+    private func points3Dfrom2D(_ points: [CGPoint], depthData: CVPixelBuffer) -> [Point3D] {
         let rowLength = CVPixelBufferGetBytesPerRow(depthData) / 4
-        let width = CVPixelBufferGetWidth(depthData)
         let height = CVPixelBufferGetHeight(depthData)
         CVPixelBufferLockBaseAddress(depthData, .readOnly)
         defer {
             CVPixelBufferUnlockBaseAddress(depthData, .readOnly)
         }
         guard let depthBuffer = CVPixelBufferGetBaseAddress(depthData)?.assumingMemoryBound(to: Float32.self) else {
-            return nil
+            return points.map { pt in Point3D(x: pt.x, y: pt.y, z: .nan)}
         }
         return points.map { pt in
-            var depths: [Float] = []
-            for y in Int(pt.y)-1...Int(pt.y)+1 {
-                if y < 0 || y >= height {
-                    continue
-                }
-                for x in Int(pt.x)-1...Int(pt.x)+1 {
-                    if x < 0 || x >= width {
-                        continue
-                    }
-                    let index = y * rowLength + x
-                    let depth = depthBuffer[index]
-                    if !depth.isNaN && depth.isFinite && depth > 0 {
-                        depths.append(depth)
-                    }
-                }
+            let index = Int(pt.y) * rowLength + Int(pt.x)
+            guard index >= 0 && index < height * rowLength else {
+                return Point3D(x: pt.x, y: pt.y, z: .nan)
             }
-            if depths.isEmpty {
-                return .nan
-            }
-            return vDSP.mean(depths)
-//            let x = Int(pt.x)
-//            let y = Int(pt.y)
-//            let index = y * rowLength + x
-//            if index >= depthBufferSize {
-//                return .nan
-//            }
-//            let depth = depthBuffer[index]
-//            return depth
+            let depth = depthBuffer[index]
+            return Point3D(x: pt.x, y: pt.y, z: CGFloat(depth))
         }
     }
     
@@ -139,4 +149,10 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
         }
         return transform
     }
+}
+
+fileprivate struct Point3D: Hashable {
+    let x: CGFloat
+    let y: CGFloat
+    let z: CGFloat
 }
