@@ -1,5 +1,5 @@
 PODS:
-  - FaceCapture (1.0.0):
+  - FaceCapture (1.0.1):
     - LivenessDetectionCore (~> 1.0.0)
     - VerIDCommonTypes (~> 1.0.0)
   - FaceDetectionMediaPipe (1.0.0):
@@ -16,18 +16,18 @@ PODS:
     - LivenessDetectionCore (~> 1.0)
     - SpoofDeviceDetection/Core
   - SwiftProtobuf (1.28.2)
-  - Ver-ID-3-Serialization (1.0.0):
+  - VerIDCommonTypes (1.0.0)
+  - VerIDSerialization (1.1.0):
     - JxlCoder (< 2.0.0, >= 1.7.3)
     - SwiftProtobuf (< 2.0.0, >= 1.28.2)
     - VerIDCommonTypes (~> 1.0)
-  - VerIDCommonTypes (1.0.0)
 
 DEPENDENCIES:
   - FaceCapture (from `../`)
   - FaceDetectionMediaPipe (~> 1.0.0)
   - SpoofDeviceDetection/Model (~> 1.0)
-  - Ver-ID-3-Serialization (~> 1.0.0)
   - VerIDCommonTypes (~> 1.0.0)
+  - VerIDSerialization (~> 1.1.0)
 
 SPEC REPOS:
   file:///Users/jakub/Applied-Recognition/CocoaPods-repo:
@@ -35,8 +35,8 @@ SPEC REPOS:
     - SpoofDeviceDetection
   https://github.com/AppliedRecognition/Ver-ID-CocoaPods-Repo.git:
     - FaceDetectionMediaPipe
-    - Ver-ID-3-Serialization
     - VerIDCommonTypes
+    - VerIDSerialization
   https://github.com/CocoaPods/Specs.git:
     - JxlCoder
     - MediaPipeTasksCommon
@@ -48,17 +48,17 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  FaceCapture: 149be93517462cea938a7c98267b712932b7d3d8
-  FaceDetectionMediaPipe: d171296be12feb279b03aee7b6caac673497c898
+  FaceCapture: 8ecc7ddb5bf7c4a129ee3b5d8070f585deef3470
+  FaceDetectionMediaPipe: 5862df985d31a01a97d87a0cc60c47d1b93b9445
   JxlCoder: e6a5ff4e5b24c1e4695265d2db6c6456e5784622
   LivenessDetectionCore: f19b47284f5702e21af8ea55fe7defac86f33829
   MediaPipeTasksCommon: de15cf4f393854505fff28a8566fa2e85297f0e9
   MediaPipeTasksVision: 658206f3ddf63ccf582bb99599ec9cbde2ca31af
   SpoofDeviceDetection: 04872bb7d39380616442361b98a7c5d9c1eee1fb
   SwiftProtobuf: 4dbaffec76a39a8dc5da23b40af1a5dc01a4c02d
-  Ver-ID-3-Serialization: dc9936ab1ffa39114db3808bfc3da0084f61f49d
-  VerIDCommonTypes: 4ddc6fcdd4bd7996e66df4491cf9de224f2370bc
+  VerIDCommonTypes: 83183a9b249d54d1bc6c3d368eded810cba1f454
+  VerIDSerialization: 5a5d607c8754761e91af827b968a871a7b0488ec
 
-PODFILE CHECKSUM: 6bcf5c54aba69cc95c5fa13ab62c010148402783
+PODFILE CHECKSUM: 41830d18bba88b830059c5bb427ef4dadeb1ca02
 
 COCOAPODS: 1.15.2

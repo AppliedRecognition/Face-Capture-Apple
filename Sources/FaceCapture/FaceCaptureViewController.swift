@@ -10,14 +10,15 @@ import SwiftUI
 import Combine
 
 @available(iOS 14, *)
-public class FaceCaptureViewController: UIHostingController<FaceCaptureNavigationView> {
+public class FaceCaptureViewController: UIHostingController<FaceCaptureView> {
     
     public weak var delegate: FaceCaptureViewControllerDelegate?
     
     private var sessionCancellables: Set<AnyCancellable> = []
     
     public init(session: FaceCaptureSession, useBackCamera: Bool = false) {
-        let view = FaceCaptureNavigationView(session: session, useBackCamera: useBackCamera) { _ in }
+//        let view = FaceCaptureNavigationView(session: session, useBackCamera: useBackCamera) { _ in }
+        let view = FaceCaptureView(session: session, configuration: FaceCaptureViewConfiguration(useBackCamera: useBackCamera))
         super.init(rootView: view)
         session.$result.sink { result in
             if let result = result {

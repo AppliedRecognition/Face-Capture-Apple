@@ -7,7 +7,7 @@
 
 import SwiftUI
 import FaceCapture
-import Ver_ID_3_Serialization
+import VerIDSerialization
 import UniformTypeIdentifiers
 
 struct FaceCaptureResultView: View {
@@ -80,17 +80,9 @@ struct FaceCaptureResultView: View {
 //            }
         }
         .task {
-            if let capture = self.result.capturedFaces.first, 
-                let imageData = try? capture.image.serialized(),
-                let faceData = try? capture.face.serialized()
+            if let capture = self.result.capturedFaces.first,
+               let data = try? ImagePackage(image: capture.image, face: capture.face).serialized()
             {
-                let imageSize = UInt32(imageData.count)
-                var data = Data()
-                data.append(contentsOf: withUnsafeBytes(of: imageSize.bigEndian, Array.init))
-                data.append(imageData)
-                let faceSize = UInt32(faceData.count)
-                data.append(contentsOf: withUnsafeBytes(of: faceSize.bigEndian, Array.init))
-                data.append(faceData)
                 self.zippedResult = data
             }
         }

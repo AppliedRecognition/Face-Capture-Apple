@@ -10,6 +10,6 @@ target 'Face Capture Demo' do
   pod 'FaceCapture', :path => '../'
   pod 'VerIDCommonTypes', '~> 1.0.0'
   pod 'SpoofDeviceDetection/Model', '~> 1.0'
-  pod 'VerIDSerialization', '~> 1.0.0'
+  pod 'VerIDSerialization', '~> 1.1.0'
   pod 'FaceDetectionMediaPipe', '~> 1.0.0'
 end

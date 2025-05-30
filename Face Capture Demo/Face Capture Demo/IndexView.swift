@@ -14,7 +14,19 @@ struct IndexView: View {
     
     var body: some View {
         _IndexView { demo in
-            self.navigationPath.append(demo)
+            if case .function = demo {
+                Task {
+                    let settings = Settings()
+                    let session = createFaceCaptureSession()
+                    let result = await FaceCapture.captureFaces(session: session, useBackCamera: settings.useBackCamera)
+                    if case .cancelled = result {
+                        return
+                    }
+                    self.navigationPath.append(result)
+                }
+            } else {
+                self.navigationPath.append(demo)
+            }
         }
         .navigationDestination(for: Demo.self) { demo in
             switch demo {
@@ -24,6 +36,8 @@ struct IndexView: View {
                 EmbeddedView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
             case .navigationStack:
                 NavStackView(navigationPath: self.$navigationPath, title: demo.title, description: demo.description)
+            default:
+                fatalError()
             }
         }
         .navigationDestination(for: FaceCaptureSessionResult.self) { result in
@@ -41,6 +55,7 @@ fileprivate struct _IndexView: View {
             DemoSection(demo: .modal(title: "Modal", description: "This example shows how to configure and run face capture presented in a modal sheet."), onNavigate: self.onNavigate)
             DemoSection(demo: .embedded(title: "Embedded", description: "This example shows how to embed a face capture session view in your layout.") , onNavigate: self.onNavigate)
             DemoSection(demo: .navigationStack(title: "Navigation", description: "This example shows how to run a face capture session in a view pushed to a navigation stack. The session will start as soon as the view is pushed on to the stack. Once the session finishes the view is popped off the stack."), onNavigate: self.onNavigate)
+            DemoSection(demo: .function(title: "Function", description: "Call a static async function on FaceCapture class."), onNavigate: self.onNavigate)
         }
         .listStyle(.insetGrouped)
         .listRowInsets(.none)
@@ -62,6 +77,7 @@ fileprivate enum Demo: Hashable {
     case modal(title: String, description: String)
     case embedded(title: String, description: String)
     case navigationStack(title: String, description: String)
+    case function(title: String, description: String)
     
     var title: String {
         switch self {
@@ -70,6 +86,8 @@ fileprivate enum Demo: Hashable {
         case .embedded(title: let title, description: _):
             return title
         case .navigationStack(title: let title, description: _):
+            return title
+        case .function(title: let title, description: _):
             return title
         }
     }
@@ -81,6 +99,8 @@ fileprivate enum Demo: Hashable {
         case .embedded(title: _, description: let description):
             return description
         case .navigationStack(title: _, description: let description):
+            return description
+        case .function(title: _, description: let description):
             return description
         }
     }

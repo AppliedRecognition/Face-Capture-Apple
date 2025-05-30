@@ -163,9 +163,8 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
     }
     
     private func finishPluginTasks() {
-        while !self.faceTrackingPluginContinuations.isEmpty {
-            self.faceTrackingPluginContinuations.removeFirst().finish()
-        }
+        self.faceTrackingPluginContinuations.forEach { $0.finish() }
+        self.faceTrackingPluginContinuations.removeAll()
     }
     
     private func finishSession() {

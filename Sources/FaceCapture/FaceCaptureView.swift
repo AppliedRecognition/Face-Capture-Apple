@@ -20,7 +20,7 @@ public struct FaceCaptureView: View {
         SessionView(session: self.session, configuration: self.configuration, result: self.$result)
     }
     
-    public init(session: FaceCaptureSession, result: Binding<FaceCaptureSessionResult?>, configuration: FaceCaptureViewConfiguration = .default) {
+    public init(session: FaceCaptureSession, result: Binding<FaceCaptureSessionResult?> = .constant(FaceCaptureSessionResult.cancelled), configuration: FaceCaptureViewConfiguration = .default) {
         self.session = session
         self.configuration = configuration
         self._result = result
