@@ -10,7 +10,6 @@ import Combine
 import SwiftUI
 import AVFoundation
 import VerIDCommonTypes
-import LivenessDetection
 
 /// Face capture session
 /// - Since: 1.0.0
@@ -233,7 +232,7 @@ public struct FaceCaptureSessionModuleFactories {
         }, createFaceTrackingResultTransformers: { [] })
     }
     
-    public static func livenessDetection(createSpoofDetectors: @escaping () -> [SpoofDetector], createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
+    public static func livenessDetection(createSpoofDetectors: @escaping () -> [SpoofDetection], createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
         return .init(createFaceDetection: {
             if let create = createFaceDetection {
                 return create()

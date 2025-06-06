@@ -7,7 +7,6 @@
 
 import Foundation
 import FaceCapture
-import SpoofDeviceDetection
 import FaceDetectionMediaPipe
 
 class Settings: ObservableObject {
@@ -89,9 +88,6 @@ extension FaceCaptureSessionModuleFactories {
     static var fromDefaults: FaceCaptureSessionModuleFactories {
         let settings = Settings()
         return .livenessDetection(createSpoofDetectors: {
-            if let spoofDeviceDetector = try? SpoofDeviceDetector() {
-                return [spoofDeviceDetector]
-            }
             return []
         }, createFaceDetection: {
             do {

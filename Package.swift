@@ -15,8 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/AppliedRecognition/Liveness-Detection-Core-Apple.git", revision: "c8f9cc500e8f62a58b758ab83e559e361662a104"),
-        .package(url: "https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple.git", revision: "0debdd8d6f1c04b6b7dfd4161f27911c06b2e174")
+        .package(url: "https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple.git", .upToNextMajor(from: "1.3.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,10 +23,6 @@ let package = Package(
         .target(
             name: "FaceCapture", 
             dependencies: [
-                .product(
-                    name: "LivenessDetection",
-                    package: "Liveness-Detection-Core-Apple"
-                ),
                 .product(
                     name: "VerIDCommonTypes",
                     package: "Ver-ID-Common-Types-Apple"
@@ -42,10 +37,6 @@ let package = Package(
             name: "FaceCaptureTests",
             dependencies: [
                 "FaceCapture",
-                .product(
-                    name: "LivenessDetection",
-                    package: "Liveness-Detection-Core-Apple"
-                ),
                 .product(name: "VerIDCommonTypes", package: "Ver-ID-Common-Types-Apple")
             ],
             resources: [

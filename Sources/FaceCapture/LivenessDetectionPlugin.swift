@@ -7,29 +7,28 @@
 
 import Foundation
 import UIKit
-import LivenessDetection
+import VerIDCommonTypes
 
 class LivenessDetectionPlugin: FaceTrackingPlugin {
     
     typealias Element = Bool
     let name: String = "Passive liveness detection"
-    let spoofDetectors: [SpoofDetector]
+    let spoofDetectors: [SpoofDetection]
     var maxPositiveFrameRatio: Float = 0.2
     var maxSuccessivePositiveFrameRatio: Float = 0.1
     
-    init(spoofDetectors: [SpoofDetector]) throws {
+    init(spoofDetectors: [SpoofDetection]) throws {
         self.spoofDetectors = spoofDetectors
     }
     
     func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Bool {
-        guard let cgImage = faceTrackingResult.input?.image.toCGImage(), let face = faceTrackingResult.face else {
+        guard let image = faceTrackingResult.input?.image, let face = faceTrackingResult.face else {
             return false
         }
-        let image = UIImage(cgImage: cgImage)
         let isSpoofed = try await withThrowingTaskGroup(of: Bool.self) { group in
             for spoofDetector in spoofDetectors {
                 group.addTask {
-                    return try await spoofDetector.isSpoofImage(image, regionOfInterest: face.bounds)
+                    return try await spoofDetector.isSpoofInImage(image, regionOfInterest: face.bounds)
                 }
             }
             for try await isSpoofed in group {

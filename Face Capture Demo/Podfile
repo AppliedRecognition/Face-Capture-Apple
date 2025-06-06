@@ -8,8 +8,7 @@ target 'Face Capture Demo' do
 
   # Pods for Face Capture Demo
   pod 'FaceCapture', :path => '../'
-  pod 'VerIDCommonTypes', '~> 1.0.0'
-  pod 'SpoofDeviceDetection/Model', '~> 1.0'
-  pod 'VerIDSerialization', '~> 1.1.0'
+  pod 'VerIDCommonTypes', '~> 1.3'
+  pod 'VerIDSerialization', '~> 1.1'
   pod 'FaceDetectionMediaPipe', '~> 1.0.0'
 end

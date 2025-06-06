@@ -24,7 +24,7 @@ Please [contact Applied Recognition](mailto:support@appliedrecognition.com) to o
 - Open your Podfile in a text editor
 - At the top of the file add `source 'https://github.com/AppliedRecognition/Ver-ID-CocoaPods-Repo.git'`
 - Unless it's already present, add `source 'https://github.com/CocoaPods/Specs.git'` below the previous source declaration.
-- In your target specification add `pod 'Face-Capture', '~> 1.0.0'`
+- In your target specification add `pod 'Face-Capture', '~> 1.1.1'`
 - Save your Podfile
 - In terminal, run the command `pod install`
 
