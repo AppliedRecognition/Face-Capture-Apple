@@ -15,14 +15,16 @@ struct IndexView: View {
     var body: some View {
         _IndexView { demo in
             if case .function = demo {
-                Task {
+                Task(priority: .utility) {
                     let settings = Settings()
                     let session = createFaceCaptureSession()
                     let result = await FaceCapture.captureFaces(session: session, useBackCamera: settings.useBackCamera)
                     if case .cancelled = result {
                         return
                     }
-                    self.navigationPath.append(result)
+                    await MainActor.run {
+                        self.navigationPath.append(result)
+                    }
                 }
             } else {
                 self.navigationPath.append(demo)

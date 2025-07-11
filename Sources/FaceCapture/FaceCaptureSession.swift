@@ -60,7 +60,7 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
         self.faceTracking.reset()
         self.result = nil
         self.pluginTasks = Dictionary(faceTrackingPlugins.map { $0.run(inputStream: self.addFaceTrackingStream()) }) { $1 }
-        self.sessionTask = Task {
+        self.sessionTask = Task(priority: .utility) {
             var capturedFaces: [CapturedFace] = []
             let result: FaceCaptureSessionResult
             do {

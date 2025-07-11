@@ -7,7 +7,7 @@
 
 import SwiftUI
 import FaceCapture
-import VerIDSerialization
+import Serialization
 import UniformTypeIdentifiers
 
 struct FaceCaptureResultView: View {

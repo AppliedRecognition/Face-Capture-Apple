@@ -23,7 +23,7 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
                 return false
             }
             let face = trackedFaceSessionProperties.face.withBoundsSetToAspectRatio(4/5)
-            guard face.noseTip != nil, face.mouthCentre != nil else {
+            guard face.noseTip != nil else {
                 return false
             }
             let imageSize = trackedFaceSessionProperties.input.image.size
@@ -32,7 +32,20 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
             let scaleY = depthSize.height/imageSize.height
             let scaleTransform = CGAffineTransform(scaleX: scaleX, y: scaleY)
             let depthFace = face.applying(scaleTransform)
-            let points3d = self.points3Dfrom2D([depthFace.leftEye, depthFace.rightEye, depthFace.mouthCentre!, depthFace.noseTip!] + depthFace.landmarks, depthData: depthData.depthDataMap)
+            let mouth: CGPoint
+            var landmarksExcludedFromTest: [CGPoint] = [depthFace.leftEye, depthFace.rightEye, depthFace.noseTip!]
+            if let mouthCentre = depthFace.mouthCentre {
+                mouth = mouthCentre
+                landmarksExcludedFromTest.append(mouth)
+            } else if let mouthLeft = depthFace.mouthLeftCorner, let mouthRight = depthFace.mouthRightCorner {
+                mouth = CGPoint(x: (mouthLeft.x + mouthRight.x) / 2, y: (mouthLeft.y + mouthRight.y) / 2)
+                landmarksExcludedFromTest.append(contentsOf: [mouthLeft, mouthRight])
+            } else {
+                return false
+            }
+            let coreLandmarks: [CGPoint] = [depthFace.leftEye, depthFace.rightEye, mouth]
+            let testLandmarks: [CGPoint] = [depthFace.noseTip!] + depthFace.landmarks.filter({ !landmarksExcludedFromTest.contains($0) })
+            let points3d = self.points3Dfrom2D(coreLandmarks + testLandmarks, depthData: depthData.depthDataMap)
             if !points3d[3].z.isNaN && points3d[3].z > 1.5 {
                 throw FaceCaptureError.passiveLivenessCheckFailed("Face is not within the expected camera range")
             }

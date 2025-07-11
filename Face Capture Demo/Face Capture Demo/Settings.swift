@@ -7,7 +7,7 @@
 
 import Foundation
 import FaceCapture
-import FaceDetectionMediaPipe
+import FaceDetectionRetinaFace
 
 class Settings: ObservableObject {
     
@@ -58,14 +58,14 @@ class Settings: ObservableObject {
             Keys.enableActiveLiveness: false,
             Keys.faceOvalWidth: settings.expectedFaceBoundsWidth,
             Keys.faceOvalHeight: settings.expectedFaceBoundsHeight,
-            Keys.faceDetection: FaceDetectionImplementation.mediaPipe.rawValue,
+            Keys.faceDetection: FaceDetectionImplementation.retinaFace.rawValue,
             Keys.yawThreshold: settings.yawThreshold
         ])
         self.useBackCamera = UserDefaults.standard.bool(forKey: Keys.useBackCamera)
         self.enableActiveLiveness = UserDefaults.standard.bool(forKey: Keys.enableActiveLiveness)
         self.faceOvalWidth = UserDefaults.standard.double(forKey: Keys.faceOvalWidth) * 100
         self.faceOvalHeight = UserDefaults.standard.double(forKey: Keys.faceOvalHeight) * 100
-        self.faceDetection = FaceDetectionImplementation(rawValue: UserDefaults.standard.string(forKey: Keys.faceDetection) ?? FaceDetectionImplementation.mediaPipe.rawValue) ?? .mediaPipe
+        self.faceDetection = FaceDetectionImplementation(rawValue: UserDefaults.standard.string(forKey: Keys.faceDetection) ?? FaceDetectionImplementation.retinaFace.rawValue) ?? .retinaFace
         self.yawThreshold = UserDefaults.standard.float(forKey: Keys.yawThreshold)
     }
 }
@@ -94,10 +94,8 @@ extension FaceCaptureSessionModuleFactories {
                 switch settings.faceDetection {
                 case .apple:
                     return AppleFaceDetection()
-                case .mediaPipe:
-                    return try FaceDetectionMediaPipe()
-                case .mediaPipeLandmarker:
-                    return try FaceLandmarkDetectionMediaPipe()
+                case .retinaFace:
+                    return try FaceDetectionRetinaFace()
                 }
             } catch {
                 return AppleFaceDetection()
@@ -112,10 +110,8 @@ extension FaceCaptureSessionModuleFactories {
                 switch settings.faceDetection {
                 case .apple:
                     return AppleFaceDetection()
-                case .mediaPipe:
-                    return try FaceDetectionMediaPipe()
-                case .mediaPipeLandmarker:
-                    return try FaceLandmarkDetectionMediaPipe()
+                case .retinaFace:
+                    return try FaceDetectionRetinaFace()
                 }
             } catch {
                 return AppleFaceDetection()
@@ -132,6 +128,5 @@ extension FaceCaptureSessionModuleFactories {
 
 enum FaceDetectionImplementation: String, CaseIterable {
     case apple = "Apple face detection"
-    case mediaPipe = "MediaPipe face detector"
-    case mediaPipeLandmarker = "MediaPipe landmarker"
+    case retinaFace = "RetinaFace face detector"
 }
