@@ -5,7 +5,7 @@ import VerIDCommonTypes
 final class FaceCaptureSessionTests: XCTestCase {
     
     func testSession() throws {
-        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), sessionModuleFactories: FaceCaptureSessionModuleFactories(createFaceDetection: { MockFaceDetection() }, createFaceTrackingPlugins: { [] }, createFaceTrackingResultTransformers: { [] }))
+        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), faceDetection: MockFaceDetection())
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
@@ -39,7 +39,7 @@ final class FaceCaptureSessionTests: XCTestCase {
     }
     
     func testFailSessionInPlugin() throws {
-        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), sessionModuleFactories: FaceCaptureSessionModuleFactories(createFaceDetection: { MockFaceDetection() }, createFaceTrackingPlugins: { [MockThrowingFaceTrackingPlugin()] }, createFaceTrackingResultTransformers: { [] }))
+        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), faceDetection: MockFaceDetection())
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
