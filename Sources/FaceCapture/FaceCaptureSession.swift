@@ -47,12 +47,14 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
     
     public init(
         settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings(),
-        sessionModuleFactories: FaceCaptureSessionModuleFactories = .default()
+        faceDetection: FaceDetection = AppleFaceDetection(),
+        faceTrackingPlugins: [any FaceTrackingPlugin] = [],
+        faceTrackingResultTransformers: [FaceTrackingResultTransformer] = []
     ) {
         self.id = UUID()
-        self.faceTracking = SessionFaceTracking(faceDetection: sessionModuleFactories.createFaceDetection(), settings: settings)
-        self.faceTrackingResultTransformers = sessionModuleFactories.createFaceTrackingResultTransformers()
-        self.faceTrackingPlugins = sessionModuleFactories.createFaceTrackingPlugins()
+        self.faceTracking = SessionFaceTracking(faceDetection: faceDetection, settings: settings)
+        self.faceTrackingPlugins = faceTrackingPlugins
+        self.faceTrackingResultTransformers = faceTrackingResultTransformers
         let input = AsyncStream<FaceCaptureSessionImageInput>(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.input = continuation
         }
@@ -202,52 +204,5 @@ extension FaceCaptureSession: SessionFaceTrackingDelegate {
             }
             return result
         }
-    }
-}
-
-public struct FaceCaptureSessionModuleFactories {
-    
-    public let createFaceDetection: () -> FaceDetection
-    public let createFaceTrackingPlugins: () -> [any FaceTrackingPlugin]
-    public let createFaceTrackingResultTransformers: () -> [FaceTrackingResultTransformer]
-    
-    public init(
-        createFaceDetection: @escaping () -> FaceDetection = { AppleFaceDetection() },
-        createFaceTrackingPlugins: @escaping () -> [any FaceTrackingPlugin] = { [] },
-        createFaceTrackingResultTransformers: @escaping () -> [FaceTrackingResultTransformer] = { [] }
-    ) {
-        self.createFaceDetection = createFaceDetection
-        self.createFaceTrackingPlugins = createFaceTrackingPlugins
-        self.createFaceTrackingResultTransformers = createFaceTrackingResultTransformers
-    }
-    
-    public static func `default`(createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
-        return .init(createFaceDetection: {
-            if let create = createFaceDetection {
-                return create()
-            }
-            return AppleFaceDetection()
-        }, createFaceTrackingPlugins: {
-            return [FPSMeasurementPlugin()]
-        }, createFaceTrackingResultTransformers: { [] })
-    }
-    
-    public static func livenessDetection(createSpoofDetectors: @escaping () -> [SpoofDetection], createFaceDetection: (() -> FaceDetection)? = nil) -> FaceCaptureSessionModuleFactories {
-        return .init(createFaceDetection: {
-            if let create = createFaceDetection {
-                return create()
-            }
-            return AppleFaceDetection()
-        }, createFaceTrackingPlugins: {
-            var plugins: [any FaceTrackingPlugin] = []
-            let spoofDetectors = createSpoofDetectors()
-            if !spoofDetectors.isEmpty {
-                if let livenessDetection = try? LivenessDetectionPlugin(spoofDetectors: spoofDetectors) {
-                    plugins.append(livenessDetection)
-                }
-            }
-            plugins.append(FPSMeasurementPlugin())
-            return plugins
-        }, createFaceTrackingResultTransformers: { [] })
     }
 }

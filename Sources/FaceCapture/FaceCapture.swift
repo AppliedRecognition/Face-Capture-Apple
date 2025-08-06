@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import ObjectiveC
+import VerIDCommonTypes
 
 @available(iOS 14, *)
 public class FaceCapture {
@@ -21,7 +22,25 @@ public class FaceCapture {
     public static func captureFaces(configuration: FaceCaptureConfiguration) async -> FaceCaptureSessionResult {
         let session = FaceCaptureSession(
             settings: configuration.settings,
-            sessionModuleFactories: configuration.faceCaptureSessionModuleFactories
+            faceDetection: configuration.faceDetection,
+            faceTrackingPlugins: configuration.faceTrackingPlugins,
+            faceTrackingResultTransformers: configuration.faceTrackingResultTransformers
+        )
+        return await captureFaces(session: session, useBackCamera: configuration.useBackCamera)
+    }
+    
+    public static func captureFaces(configure: (inout FaceCaptureConfiguration) throws -> Void) async -> FaceCaptureSessionResult {
+        var configuration = FaceCaptureConfiguration()
+        do {
+            try configure(&configuration)
+        } catch {
+            return FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: error)
+        }
+        let session = FaceCaptureSession(
+            settings: configuration.settings,
+            faceDetection: configuration.faceDetection,
+            faceTrackingPlugins: configuration.faceTrackingPlugins,
+            faceTrackingResultTransformers: configuration.faceTrackingResultTransformers
         )
         return await captureFaces(session: session, useBackCamera: configuration.useBackCamera)
     }
@@ -58,16 +77,51 @@ public class FaceCapture {
 /// - Since: 1.1.0
 public struct FaceCaptureConfiguration {
     /// Face capture session settings
-    public let settings: FaceCaptureSessionSettings
+    public var settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings()
     /// `true` to use the device's back camera
-    public let useBackCamera: Bool
+    public var useBackCamera: Bool = false
     /// Factories for session plugins like liveness detection
-    public let faceCaptureSessionModuleFactories: FaceCaptureSessionModuleFactories
+    public var faceDetection: FaceDetection = AppleFaceDetection()
+    public var faceTrackingPlugins: [any FaceTrackingPlugin] = []
+    public var faceTrackingResultTransformers: [FaceTrackingResultTransformer] = []
     
-    public init(settings: FaceCaptureSessionSettings, faceCaptureSessionModuleFactories: FaceCaptureSessionModuleFactories, useBackCamera: Bool = false) {
+    public init(
+        settings: FaceCaptureSessionSettings = FaceCaptureSessionSettings(),
+        useBackCamera: Bool = false,
+        faceDetection: FaceDetection = AppleFaceDetection(),
+        faceTrackingPlugins: [any FaceTrackingPlugin] = {
+            if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(.front) {
+                return [DepthLivenessDetection()]
+            } else {
+                return []
+            }
+        }(),
+        faceTrackingResultTransformers: [FaceTrackingResultTransformer] = []
+    ) {
         self.settings = settings
         self.useBackCamera = useBackCamera
-        self.faceCaptureSessionModuleFactories = faceCaptureSessionModuleFactories
+        self.faceDetection = faceDetection
+        self.faceTrackingPlugins = faceTrackingPlugins
+        self.faceTrackingResultTransformers = faceTrackingResultTransformers
+    }
+    
+    public static func spoofDetectionUsingFrontCamera(
+        faceDetection: FaceDetection,
+        fallbackSpoofDetectors: [SpoofDetection] = []
+    ) -> FaceCaptureConfiguration {
+        var plugins: [any FaceTrackingPlugin] = []
+        if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(.front) {
+            plugins.append(DepthLivenessDetection())
+        } else if !fallbackSpoofDetectors.isEmpty, let plugin = try? LivenessDetectionPlugin(spoofDetectors: fallbackSpoofDetectors) {
+            plugins.append(plugin)
+        }
+        let config = FaceCaptureConfiguration(
+            settings: FaceCaptureSessionSettings(),
+            useBackCamera: false,
+            faceDetection: faceDetection,
+            faceTrackingPlugins: plugins
+        )
+        return config
     }
 }
 

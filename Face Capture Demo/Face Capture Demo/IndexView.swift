@@ -16,9 +16,7 @@ struct IndexView: View {
         _IndexView { demo in
             if case .function = demo {
                 Task(priority: .utility) {
-                    let settings = Settings()
-                    let session = createFaceCaptureSession()
-                    let result = await FaceCapture.captureFaces(session: session, useBackCamera: settings.useBackCamera)
+                    let result = await FaceCapture.captureFaces(configure: CaptureSessionConfiguration.configureFaceCapture)
                     if case .cancelled = result {
                         return
                     }

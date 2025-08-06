@@ -149,12 +149,15 @@ fileprivate class CameraControlDelegate: NSObject, AVCaptureVideoDataOutputSampl
     var videoDataOutput: AVCaptureVideoDataOutput?
     var depthDataOutput: AVCaptureDepthDataOutput?
     var orientation: CGImagePropertyOrientation = .up
+    let bgQueue = DispatchQueue(label: "images")
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let videoPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-        self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation))
+        self.bgQueue.async {
+            self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation))
+        }
     }
     
     func dataOutputSynchronizer(_ synchronizer: AVCaptureDataOutputSynchronizer, didOutput synchronizedDataCollection: AVCaptureSynchronizedDataCollection) {
@@ -170,7 +173,9 @@ fileprivate class CameraControlDelegate: NSObject, AVCaptureVideoDataOutputSampl
         guard let videoPixelBuffer = CMSampleBufferGetImageBuffer(syncedVideoData.sampleBuffer) else {
             return
         }
-        self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation, depthData: syncedDepthData.depthData))
+        self.bgQueue.async {
+            self.continuation?.yield(Image(videoBuffer: videoPixelBuffer, orientation: self.orientation, depthData: syncedDepthData.depthData))
+        }
     }
 }
 

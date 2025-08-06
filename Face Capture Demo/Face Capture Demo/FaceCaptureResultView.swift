@@ -74,16 +74,14 @@ struct FaceCaptureResultView: View {
             if let zip = self.zippedResult, let image = self.result.capturedFaces.first?.image.toCGImage() {
                 ShareSheet(items: [Image3DActivityItem(data: zip, name: "Image", image: UIImage(cgImage: image))])
             }
-//            if let cgImage = self.result.capturedFaces.first?.image.toCGImage() {
-//                let uiImage = UIImage(cgImage: cgImage)
-//                ShareSheet(items: [uiImage])
-//            }
         }
-        .task {
+        .task(priority: .utility) {
             if let capture = self.result.capturedFaces.first,
                let data = try? ImagePackage(image: capture.image, face: capture.face).serialized()
             {
-                self.zippedResult = data
+                await MainActor.run {
+                    self.zippedResult = data
+                }
             }
         }
     }

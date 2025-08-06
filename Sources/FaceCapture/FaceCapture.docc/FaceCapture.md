@@ -17,29 +17,17 @@ The library runs on iOS 13 or newer. ``FaceCaptureNavigationView`` and ``FaceCap
 The simplest way to capture faces is to use the static async `captureFaces` method of the ``FaceCapture`` class. The call opens a modal dialog that guides the user to capture their face.
 
 ```swift
-Task {
-    do {
-        let faceDetection = try FaceLandmarkDetectionMediaPipe()
-        let configuration = FaceCaptureConfiguration(
-            settings: FaceCaptureSessionSettings(),
-            faceCaptureSessionModuleFactories: FaceCaptureSessionModuleFactories(
-                createFaceDetection: { faceDetection },
-                createFaceTrackingPlugins: {
-                    [DepthLivenessDetection()]
-                }
-            )
-        )
-        let result = await FaceCapture.captureFaces(configuration: configuration)
-        switch result {
-        case .success:
-            // Capture succeeded
-        case .failure:
-            // Capture failed
-        case .cancel:
-            // Capture cancelled
-        }
-    } catch {
-        // Failed to create face detection
+Task(priority: .utility) {
+    let result = await FaceCapture.captureFaces { configuration in
+        configuration.faceDetection = try FaceDetectionRetinaFace()
+    }
+    switch result {
+    case .success:
+        // Capture succeeded
+    case .failure:
+        // Capture failed
+    case .cancel:
+        // Capture cancelled
     }
 }
 ```
@@ -120,10 +108,6 @@ a modal sheet.
 - ``FaceCaptureSessionResult``
 - ``FaceTrackingResult``
 - ``FaceCapture``
-
-### Face tracking modules
-
-- ``FaceCaptureSessionModuleFactories``
 
 ### Face detection
 

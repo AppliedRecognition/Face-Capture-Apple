@@ -28,7 +28,7 @@ struct ModalView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    self.session = createFaceCaptureSession()
+                    CaptureSessionConfiguration.configureFaceCaptureSession($session, result: $result)
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")

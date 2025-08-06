@@ -24,7 +24,7 @@ Please [contact Applied Recognition](mailto:support@appliedrecognition.com) to o
 - Open your Podfile in a text editor
 - At the top of the file add `source 'https://github.com/AppliedRecognition/Ver-ID-CocoaPods-Repo.git'`
 - Unless it's already present, add `source 'https://github.com/CocoaPods/Specs.git'` below the previous source declaration.
-- In your target specification add `pod 'Face-Capture', '~> 1.1.1'`
+- In your target specification add `pod 'Face-Capture'`
 - Save your Podfile
 - In terminal, run the command `pod install`
 
@@ -57,7 +57,7 @@ settings.countdownSeconds = 0
 
 #### Configure face detection
 
-Create an instance of a class that implements the [FaceDetection](https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple/blob/main/Sources/VerIDCommonTypes/FaceDetection.swift) protocol. The library comes with [AppleFaceDetection](https://github.com/AppliedRecognition/Face-Capture-Apple/blob/main/Sources/FaceCapture/AppleFaceDetection.swift), which uses face detection that's part of the CocoaTouch SDK and is available on all Apple devices. We recommend [MediaPipe face detection](https://github.com/AppliedRecognition/Face-Detection-MediaPipe-Apple) package for best performance and accurate face angle estimates. To add it to your Podfile use `pod 'FaceDetectionMediaPipe', '~> 1.0.0'`.
+Create an instance of a class that implements the [FaceDetection](https://github.com/AppliedRecognition/Ver-ID-Common-Types-Apple/blob/main/Sources/VerIDCommonTypes/FaceDetection.swift) protocol. The library comes with [AppleFaceDetection](https://github.com/AppliedRecognition/Face-Capture-Apple/blob/main/Sources/FaceCapture/AppleFaceDetection.swift), which uses face detection that's part of the CocoaTouch SDK and is available on all Apple devices. We recommend [RetinaFace face detection](https://github.com/AppliedRecognition/Face-Detection-RetinaFace-Apple) for best performance and accurate face angle estimates.
 
 **Choose from one of the following:**
 
@@ -65,6 +65,13 @@ Create an instance of a class that implements the [FaceDetection](https://github
 
     ```swift
     let faceDetection = AppleFaceDetection()
+    ```
+- RetinaFace face detector:
+
+    ```swift
+    import FaceDetectionRetinaFace
+    
+    let faceDetection = try FaceDetectionRetinaFace()
     ```
 - MediaPipe face detector:
 
@@ -97,7 +104,7 @@ if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
 }
 ```
 
-If depth-based liveness detection isn't available you can use Ver-ID's machine-learning liveness detection model. Add it to your application by including `pod 'SpoofDeviceDetection/Model', '~> 1.0'` in your Podfile.
+If depth-based liveness detection isn't available you can use Ver-ID's [machine-learning liveness detection](https://github.com/AppliedRecognition/Spoof-Device-Detection-Ver-ID-3-Apple).
 
 Here is how you can choose between depth-based and ML-model liveness detection:
 
@@ -108,57 +115,39 @@ let cameraPosition: AVCaptureDevice.Position = .front
 var plugins: [any FaceTrackingPlugin] = []
 if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
     plugins.append(DepthLivenessDetection())
-} else if let spoofDeviceDetector = try? SpoofDeviceDetector(), let livenessDetection = try? LivenessDetectionPlugin(spoofDetectors: [spoofDeviceDetector]) {
-    plugins.append(livenessDetection)
+} else {
+    let spoofDeviceDetection = SpoofDeviceDetection(apiKey: "your API key", url: URL(string: "server URL")!)
+    if let livenessDetection = try? LivenessDetectionPlugin(spoofDetectors: [spoofDeviceDetection]) {
+        plugins.append(livenessDetection)
+    }
 }
 
-```
-
-#### Face capture session module factories
-
-The `FaceCaptureSessionModuleFactories` struct encapsulates the face detection and face tracking plugin configuration.
-
-```swift
-var faceCaptureSessionModuleFactories = FaceCaptureSessionModuleFactories(
-    createFaceDetection: {
-        faceDetection
-    },
-    createFaceTrackingPlugins: {
-        plugins
-    }
-)
 ```
 
 #### Putting it all together – creating a session
 
 ```swift
 import FaceCapture
-import FaceDetectionMediaPipe
+import FaceDetectionRetinaFace
 import SpoofDeviceDetection
 
-func createFaceCaptureSession() throws -> FaceCaptureSession {
-    let cameraPosition: AVCaptureDevice.Position = .front // Front-facing (selfie) camera
+func createFaceCaptureSession(useBackCamera: Bool) throws -> FaceCaptureSession {
+    let cameraPosition: AVCaptureDevice.Position = useBackCamera ? .back : .front
     let settings = FaceCaptureSessionSettings()
-    let faceDetection = try FaceDetectionMediaPipe()
+    let faceDetection = try FaceDetectionRetinaFace()
+    let cameraPosition: AVCaptureDevice.Position = .front
     var plugins: [any FaceTrackingPlugin] = []
     if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
         plugins.append(DepthLivenessDetection())
     } else {
-        let spoofDeviceDetector = try SpoofDeviceDetector()
-        let livenessDetection = try LivenessDetectionPlugin(spoofDetectors: [spoofDeviceDetector])
+        let spoofDeviceDetection = SpoofDeviceDetection(apiKey: "your API key", url: URL(string: "server URL")!)
+        let livenessDetection = try LivenessDetectionPlugin(spoofDetectors: [spoofDeviceDetection])
         plugins.append(livenessDetection)
     }
-    let faceCaptureSessionModuleFactories = FaceCaptureSessionModuleFactories(
-        createFaceDetection: {
-            faceDetection
-        },
-        createFaceTrackingPlugins: {
-            plugins
-        }
-    )
     return FaceCaptureSession(
         settings: settings, 
-        sessionModuleFactories: faceCaptureSessionModuleFactories
+        faceDetection: faceDetection,
+        faceTrackingPlugins: plugins
     )
 }
 ```
@@ -219,12 +208,6 @@ struct MySessionView: View {
 The project contains a [demo app](https://github.com/AppliedRecognition/Face-Capture-Apple/tree/main/Face%20Capture%20Demo) that shows the above concepts in the context of a mobile app.
 
 The app shows how to present the session view as a modal sheet, embedded in another view or pushed in a navigation stack.
-
-### Demo app setup
-
-1. Navigate to the [Face Capture Demo](https://github.com/AppliedRecognition/Face-Capture-Apple/tree/main/Face%20Capture%20Demo) directory.
-2. Run `pod install` to install the app's dependencies.
-3. Run the app from Xcode.
 
 ## API documentation
 

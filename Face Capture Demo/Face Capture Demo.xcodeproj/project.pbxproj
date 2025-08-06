@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B15EFA72E43A0A700938641 /* CaptureSessionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B15EFA62E43A0A700938641 /* CaptureSessionConfiguration.swift */; };
 		3B37509D2B698D9C000F44BB /* Face_Capture_DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */; };
 		3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ModalView.swift */; };
 		3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A02B698DA1000F44BB /* Assets.xcassets */; };
@@ -25,6 +26,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3B15EFA62E43A0A700938641 /* CaptureSessionConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSessionConfiguration.swift; sourceTree = "<group>"; };
 		3B3750992B698D9C000F44BB /* Face Capture Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Face Capture Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Face_Capture_DemoApp.swift; sourceTree = "<group>"; };
 		3B37509E2B698D9C000F44BB /* ModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalView.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 				3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */,
 				3BE1A5FB2B761900005E853C /* SettingsView.swift */,
 				3BE1A5FD2B762B37005E853C /* Settings.swift */,
+				3B15EFA62E43A0A700938641 /* CaptureSessionConfiguration.swift */,
 			);
 			path = "Face Capture Demo";
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 				3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */,
 				3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */,
 				3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */,
+				3B15EFA72E43A0A700938641 /* CaptureSessionConfiguration.swift in Sources */,
 				3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */,
 				3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */,
 				3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */,
@@ -421,7 +425,7 @@
 			repositoryURL = "https://github.com/AppliedRecognition/Face-Detection-RetinaFace-Apple.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.1;
+				minimumVersion = 1.0.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
