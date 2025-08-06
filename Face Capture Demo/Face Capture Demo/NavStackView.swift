@@ -26,8 +26,9 @@ struct NavStackView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    let session = createFaceCaptureSession()
-                    self.navigationPath.append(session)
+                    if let session = try? CaptureSessionConfiguration.createFaceCaptureSession() {
+                        self.navigationPath.append(session)
+                    }
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")

@@ -83,49 +83,6 @@ extension FaceCaptureSessionSettings {
     }
 }
 
-extension FaceCaptureSessionModuleFactories {
-    
-    static var fromDefaults: FaceCaptureSessionModuleFactories {
-        let settings = Settings()
-        return .livenessDetection(createSpoofDetectors: {
-            return []
-        }, createFaceDetection: {
-            do {
-                switch settings.faceDetection {
-                case .apple:
-                    return AppleFaceDetection()
-                case .retinaFace:
-                    return try FaceDetectionRetinaFace()
-                }
-            } catch {
-                return AppleFaceDetection()
-            }
-        })
-    }
-    
-    static var withDepthBasedLiveness: FaceCaptureSessionModuleFactories {
-        let settings = Settings()
-        return .init(createFaceDetection: {
-            do {
-                switch settings.faceDetection {
-                case .apple:
-                    return AppleFaceDetection()
-                case .retinaFace:
-                    return try FaceDetectionRetinaFace()
-                }
-            } catch {
-                return AppleFaceDetection()
-            }
-        }, createFaceTrackingPlugins: {
-            var plugins: [any FaceTrackingPlugin] = []
-            let livenessDetection = DepthLivenessDetection()
-            plugins.append(livenessDetection)
-            plugins.append(FPSMeasurementPlugin())
-            return plugins
-        }, createFaceTrackingResultTransformers: { [] })
-    }
-}
-
 enum FaceDetectionImplementation: String, CaseIterable {
     case apple = "Apple face detection"
     case retinaFace = "RetinaFace face detector"
