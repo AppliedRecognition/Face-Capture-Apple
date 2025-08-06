@@ -9,19 +9,19 @@ import Foundation
 import UIKit
 import VerIDCommonTypes
 
-class LivenessDetectionPlugin: FaceTrackingPlugin {
+public class LivenessDetectionPlugin: FaceTrackingPlugin {
     
-    typealias Element = Bool
-    let name: String = "Passive liveness detection"
-    let spoofDetectors: [SpoofDetection]
-    var maxPositiveFrameRatio: Float = 0.2
-    var maxSuccessivePositiveFrameRatio: Float = 0.1
+    public typealias Element = Bool
+    public let name: String = "Passive liveness detection"
+    public let spoofDetectors: [SpoofDetection]
+    public var maxPositiveFrameRatio: Float = 0.2
+    public var maxSuccessivePositiveFrameRatio: Float = 0.1
     
-    init(spoofDetectors: [SpoofDetection]) throws {
+    public init(spoofDetectors: [SpoofDetection]) throws {
         self.spoofDetectors = spoofDetectors
     }
     
-    func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Bool {
+    public func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Bool {
         guard let image = faceTrackingResult.input?.image, let face = faceTrackingResult.face else {
             return false
         }
@@ -41,7 +41,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
         return isSpoofed
     }
     
-    func processFinalResults(_ faceTrackingResults: [FaceTrackingPluginResult<Bool>]) async throws {
+    public func processFinalResults(_ faceTrackingResults: [FaceTrackingPluginResult<Bool>]) async throws {
         let (longestSuccessiveFailureCount, _, totalFailureCount) = faceTrackingResults.reduce((currentStreak: 0, maxStreak: 0, totalFailureCount: 0)) { result, element in
             let currentStreak = element.result ? result.currentStreak + 1 : 0
             let maxStreak = max(result.maxStreak, currentStreak)
@@ -57,7 +57,7 @@ class LivenessDetectionPlugin: FaceTrackingPlugin {
         }
     }
     
-    func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Bool>]) async -> String {
+    public func createSummaryFromResults(_ results: [FaceTrackingPluginResult<Bool>]) async -> String {
         let successCount = results.reduce(0, { result, element in
             if !element.result {
                 return result + 1

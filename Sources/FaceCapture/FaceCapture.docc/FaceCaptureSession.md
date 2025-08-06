@@ -24,16 +24,12 @@ and when the buffer is full set the status of the best result to ``FaceTrackingR
 transformer work synchronously. If your transformer takes a long time to process the face tracking result the session preview 
 frame rate will suffer.
 
-The face capture library comes with a number of useful session modules. To supply your own session modules pass an instance 
-of ``FaceCaptureSessionModuleFactories`` to the session constructor.
-
 ## Topics
 
 ### Creating a session
 
 - ``FaceCaptureSession/init(settings:sessionModuleFactories:)``
 - ``FaceCaptureSessionSettings``
-- ``FaceCaptureSessionModuleFactories``
 
 ### Submitting session input
 
