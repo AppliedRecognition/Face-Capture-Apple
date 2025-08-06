@@ -8,6 +8,8 @@
 import SwiftUI
 import FaceCapture
 import AVFoundation
+import VerIDCommonTypes
+import FaceDetectionRetinaFace
 
 @main
 struct Face_Capture_DemoApp: App {
@@ -20,15 +22,5 @@ struct Face_Capture_DemoApp: App {
                 IndexView(navigationPath: self.$navigationPath)
             }
         }
-    }
-}
-
-func createFaceCaptureSession() -> FaceCaptureSession {
-    let settings = Settings()
-    let cameraPosition: AVCaptureDevice.Position = settings.useBackCamera ? .back : .front
-    if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
-        return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .withDepthBasedLiveness)
-    } else {
-        return FaceCaptureSession(settings: .fromDefaults, sessionModuleFactories: .fromDefaults)
     }
 }
