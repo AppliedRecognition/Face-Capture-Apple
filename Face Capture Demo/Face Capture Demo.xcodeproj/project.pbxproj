@@ -417,7 +417,7 @@
 			repositoryURL = "https://github.com/AppliedRecognition/Ver-ID-3-Serialization-Apple.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.1;
+				minimumVersion = 1.1.2;
 			};
 		};
 		3B6F4ED02E21308E00A5B1D3 /* XCRemoteSwiftPackageReference "Face-Detection-RetinaFace-Apple" */ = {
@@ -425,7 +425,7 @@
 			repositoryURL = "https://github.com/AppliedRecognition/Face-Detection-RetinaFace-Apple.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.3;
+				minimumVersion = 1.0.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
