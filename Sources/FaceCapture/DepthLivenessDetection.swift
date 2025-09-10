@@ -14,7 +14,11 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
         "Depth-based liveness detection"
     }
     
-    public init() {}
+    public var minimumDepthVariation: CGFloat
+    
+    public init(minimumDepthVariation: CGFloat = 0.015) {
+        self.minimumDepthVariation = minimumDepthVariation
+    }
     
     public func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) async throws -> Bool {
         switch faceTrackingResult {
@@ -51,7 +55,7 @@ public class DepthLivenessDetection: FaceTrackingPlugin {
             }
             let planePoints = Array(points3d[0..<3]).filter({ !$0.z.isNaN })
             let testPoints = points3d.dropFirst(3).filter { !$0.z.isNaN && !planePoints.contains($0) }
-            return try self.checkFaceIs3D(planePoints: planePoints, testPoints: testPoints)
+            return try self.checkFaceIs3D(planePoints: planePoints, testPoints: testPoints, planeDistThreshold: self.minimumDepthVariation)
         default:
             return false
         }
