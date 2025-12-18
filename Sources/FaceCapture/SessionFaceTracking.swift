@@ -51,7 +51,7 @@ final class SessionFaceTracking {
         var expectedFaceBounds = self.settings.expectedFaceBoundsInSize(rect.size)
         expectedFaceBounds.origin.x += rect.minX
         expectedFaceBounds.origin.y += rect.minY
-        if let face = try await self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first {
+        if let face = try await self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first?.normalizingBounds() {
             let alignedFace = AlignedFace(face)
             self.faces.append(alignedFace)
             let smoothedFace = self.smoothedFace!
