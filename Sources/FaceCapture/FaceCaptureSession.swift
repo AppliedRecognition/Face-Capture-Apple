@@ -22,7 +22,7 @@ public class FaceCaptureSession: ObservableObject, Hashable, Identifiable {
     }
     /// Face capture session result
     /// - Since: 1.0.0
-    @Published private(set) public var result: FaceCaptureSessionResult?
+    @Published internal(set) public var result: FaceCaptureSessionResult?
     
     private var faceTrackingResultSubject: PassthroughSubject<FaceTrackingResult,Never> = PassthroughSubject()
     private var input: AsyncStream<FaceCaptureSessionImageInput>.Continuation?
