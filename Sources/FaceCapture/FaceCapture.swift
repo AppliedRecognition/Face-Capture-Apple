@@ -55,12 +55,12 @@ public class FaceCapture {
         return await withCheckedContinuation { cont in
             Task { @MainActor in
                 guard let window = UIApplication.shared.keyWindowInConnectedScenes else {
-                    cont.resume(returning: FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: NSError()))
+                    cont.resume(returning: FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: FaceCaptureError.failedToPresentViewController))
                     return
                 }
                 let rootVC = window.rootViewController
                 guard let topVC = rootVC?.topMostViewController() ?? rootVC else {
-                    cont.resume(returning: FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: NSError()))
+                    cont.resume(returning: FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: FaceCaptureError.failedToPresentViewController))
                     return
                 }
                 let delegate = FaceCaptureDelegate(continuation: cont)
