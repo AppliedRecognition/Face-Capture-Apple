@@ -17,6 +17,10 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
             return "Created"
         case .waiting:
             return "Waiting"
+        case .launched:
+            return "Launched"
+        case .starting:
+            return "Starting"
         case .started:
             return "Started"
         case .paused:
@@ -37,6 +41,8 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     case created(Bearing)
     case waiting(WaitingSessionProperties)
+    case launched(WaitingSessionProperties)
+    case starting(StartedSessionProperties)
     case started(StartedSessionProperties)
     case paused(StartedSessionProperties)
     case faceFound(TrackedFaceSessionProperties)
@@ -47,6 +53,8 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     public var input: FaceCaptureSessionImageInput? {
         switch self {
+        case .starting(let props):
+            return props.input
         case .started(let props):
             return props.input
         case .paused(let props):
@@ -71,6 +79,10 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
         case .created(let bearing):
             return bearing
         case .waiting(let props):
+            return props.requestedBearing
+        case .launched(let props):
+            return props.requestedBearing
+        case .starting(let props):
             return props.requestedBearing
         case .started(let props):
             return props.requestedBearing
@@ -108,6 +120,10 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     public var smoothedFace: Face? {
         switch self {
+        case .starting(let props):
+            return props.smoothedFace
+        case .started(let props):
+            return props.smoothedFace
         case .faceFound(let props):
             return props.smoothedFace
         case .faceFixed(let props):
@@ -141,6 +157,8 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     public var expectedFaceBounds: CGRect? {
         switch self {
+        case .starting(let props):
+            return props.expectedFaceBounds
         case .started(let props):
             return props.expectedFaceBounds
         case .waiting(let props):
@@ -164,6 +182,8 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
     
     public var time: Double? {
         switch self {
+        case .starting(let props):
+            return props.input.time
         case .started(let props):
             return props.input.time
         case .paused(let props):
@@ -206,8 +226,14 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
         case .waiting(let props):
             let updatedProps = WaitingSessionProperties(requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
             return .waiting(updatedProps)
+        case .launched(let props):
+            let updatedProps = WaitingSessionProperties(requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
+            return .launched(updatedProps)
+        case .starting(let props):
+            let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: smoothedFace)
+            return .starting(updatedProps)
         case .started(let props):
-            let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
+            let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: smoothedFace)
             return .started(updatedProps)
         case .faceFound(let props):
             let updatedProps = TrackedFaceSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: face!, smoothedFace: smoothedFace!)
@@ -222,7 +248,7 @@ public enum FaceTrackingResult: Hashable, Sendable, CustomStringConvertible {
             let updatedProps = TrackedFaceSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: face!, smoothedFace: smoothedFace!)
             return .faceMisaligned(updatedProps)
         case .paused(let props):
-            let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds)
+            let updatedProps = StartedSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: smoothedFace!)
             return .paused(updatedProps)
         case .faceCaptured(let props):
             let updatedProps = TrackedFaceSessionProperties(input: props.input, requestedBearing: props.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: face!, smoothedFace: smoothedFace!)
@@ -240,6 +266,7 @@ public struct StartedSessionProperties: Hashable, Sendable {
     public let input: FaceCaptureSessionImageInput
     public let requestedBearing: Bearing
     public let expectedFaceBounds: CGRect
+    public let smoothedFace: Face?
 }
 
 public struct TrackedFaceSessionProperties: Hashable, Sendable {
