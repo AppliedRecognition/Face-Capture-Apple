@@ -27,10 +27,12 @@ final class SessionFaceTracking {
     let angleBearingEvaluation: AngleBearingEvaluation
     private var faces: TimeConstrainedCircularBuffer<AlignedFace>
     var hasBeenAligned: Bool = false
-    var isFaceWithBoundsFixedInImageSize: (CGRect,CGRect) -> Bool
+    var isFaceWithBoundsFixedInImageSize: (CGRect,CGRect, CGSize) -> Bool
     var alignTime: Double?
     var angleHistory: [EulerAngle<Float>] = []
     var hasFaceBeenFixed: Bool = false
+    var launched: Bool = false
+    var started: Bool = false
     weak var delegate: SessionFaceTrackingDelegate?
     
     init(faceDetection: FaceDetection, settings: FaceCaptureSessionSettings) {
@@ -38,8 +40,8 @@ final class SessionFaceTracking {
         self.settings = settings
         self.faces = TimeConstrainedCircularBuffer<AlignedFace>(duration: 0.5)
         self.angleBearingEvaluation = AngleBearingEvaluation(sessionSettings: settings)
-        self.isFaceWithBoundsFixedInImageSize = { bounds, expectedBounds in
-            let maxRect = expectedBounds.insetBy(dx: 0-expectedBounds.width*0.3, dy: 0-expectedBounds.height*0.3)
+        self.isFaceWithBoundsFixedInImageSize = { bounds, expectedBounds, imageSize in
+            let maxRect = CGRect(origin: .zero, size: imageSize)
             let minRect = expectedBounds.insetBy(dx: expectedBounds.width*0.4, dy: expectedBounds.height*0.4)
             return bounds.contains(minRect) && maxRect.contains(bounds)
         }
@@ -51,48 +53,58 @@ final class SessionFaceTracking {
         var expectedFaceBounds = self.settings.expectedFaceBoundsInSize(rect.size)
         expectedFaceBounds.origin.x += rect.minX
         expectedFaceBounds.origin.y += rect.minY
+        if !self.launched {
+            self.launched = true
+            return .launched(WaitingSessionProperties(requestedBearing: requestedBearing, expectedFaceBounds: expectedFaceBounds))
+        }
         if let face = try await self.faceDetection.detectFacesInImage(imageCapture.image, limit: 1).first?.normalizingBounds() {
             let alignedFace = AlignedFace(face)
             self.faces.append(alignedFace)
             let smoothedFace = self.smoothedFace!
+            if imageCapture.time < Double(self.settings.countdownSeconds) {
+                return .starting(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: smoothedFace))
+            } else if !self.started {
+                self.started = true
+                return .started(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: smoothedFace))
+            }
             self.faces.last!.isAligned = self.angleBearingEvaluation.angle(smoothedFace.angle, matchesBearing: self.requestedBearing)
-            self.faces.last!.isFixed = self.isFaceWithBoundsFixedInImageSize(smoothedFace.bounds, expectedFaceBounds)
-//            NSLog("Face in frame %ld: aligned = %@, fixed = %@", imageCapture.serialNumber, self.faces.last!.isAligned ? "yes" : "no", self.faces.last!.isFixed ? "yes" : "no")
-//            NSLog("In frame %ld there were %d faces in the buffer: %d aligned and %d fixed", imageCapture.serialNumber, self.faces.count, self.faces.filter { $0.isAligned }.count, self.faces.filter { $0.isFixed }.count)
+            self.faces.last!.isFixed = self.isFaceWithBoundsFixedInImageSize(smoothedFace.bounds, expectedFaceBounds, imageSize)
             if self.settings.faceCaptureCount > 1 {
                 self.angleHistory.append(smoothedFace.angle)
                 if let previousBearing = self.previousBearing, previousBearing != self.requestedBearing {
-//                    let previousAngle = self.angleBearingEvaluation.angle(forBearing: previousBearing)
-//                    let currentAngle = self.angleBearingEvaluation.angle(forBearing: self.requestedBearing)
-//                    let startYaw = min(previousAngle.yaw, currentAngle.yaw)
-//                    let endYaw = max(previousAngle.yaw, currentAngle.yaw)
-//                    let yawTolerance = self.angleBearingEvaluation.thresholdAngleTolerance(forAxis: .yaw)
-//                    var movedTooFast = self.angleHistory.count > 1
+                    //                    let previousAngle = self.angleBearingEvaluation.angle(forBearing: previousBearing)
+                    //                    let currentAngle = self.angleBearingEvaluation.angle(forBearing: self.requestedBearing)
+                    //                    let startYaw = min(previousAngle.yaw, currentAngle.yaw)
+                    //                    let endYaw = max(previousAngle.yaw, currentAngle.yaw)
+                    //                    let yawTolerance = self.angleBearingEvaluation.thresholdAngleTolerance(forAxis: .yaw)
+                    //                    var movedTooFast = self.angleHistory.count > 1
                     var movedOpposite = false
                     for angle in self.angleHistory {
-//                        if angle.yaw > startYaw + yawTolerance && angle.yaw < endYaw - yawTolerance {
-//                            movedTooFast = false
-//                        }
+                        //                        if angle.yaw > startYaw + yawTolerance && angle.yaw < endYaw - yawTolerance {
+                        //                            movedTooFast = false
+                        //                        }
                         if !self.angleBearingEvaluation.angle(angle, isBetweenBearing: previousBearing, and: self.requestedBearing) {
                             movedOpposite = true
                             break
                         }
                     }
-//                    if movedTooFast {
-//                        throw "Moved too fast"
-////                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
-//                    }
+                    //                    if movedTooFast {
+                    //                        throw "Moved too fast"
+                    ////                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
+                    //                    }
                     if movedOpposite {
                         throw FaceCaptureError.activeLivenessCheckFailed(.faceMovedOpposite)
-//                        throw FaceCaptureError.activeLivenessError(reason: .movedOpposite(bearing: requestedBearing))
+                        //                        throw FaceCaptureError.activeLivenessError(reason: .movedOpposite(bearing: requestedBearing))
                     }
                 }
             }
+        } else if imageCapture.time < Double(self.settings.faceCaptureCount) {
+            return .starting(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: nil))
         } else {
             self.angleHistory.removeAll()
             self.faces.removeFirst()
         }
-        var result: FaceTrackingResult = .started(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds))
+        var result: FaceTrackingResult = .started(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: nil))
         if !self.hasFaceBeenFixed && self.faces.hasRemovedElements && !self.faces.isEmpty && self.faces.allSatisfy({ $0.isFixed }) {
             self.hasFaceBeenFixed = true
             return .faceFixed(TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!))
@@ -101,7 +113,7 @@ final class SessionFaceTracking {
             if self.faces.allSatisfy({ $0.isAligned }) {
                 let now = CACurrentMediaTime()
                 if let alignTime = self.alignTime, now-alignTime < self.settings.pauseDuration {
-                    result = .paused(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds))
+                    result = .paused(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: nil))
                 } else {
                     let props = TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!)
                     if let delegate = self.delegate {
@@ -150,6 +162,8 @@ final class SessionFaceTracking {
         self.alignTime = nil
         self.requestedBearing = .straight
         self.previousBearing = nil
+        self.started = false
+        self.launched = false
     }
     
     var smoothingBufferSize: Int = 10

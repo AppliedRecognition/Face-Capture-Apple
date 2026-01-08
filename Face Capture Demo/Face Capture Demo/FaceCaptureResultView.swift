@@ -76,11 +76,22 @@ struct FaceCaptureResultView: View {
             }
         }
         .task(priority: .utility) {
-            if let capture = self.result.capturedFaces.first,
-               let data = try? ImagePackage(image: capture.image, face: capture.face).serialized()
-            {
+            if let data = await self.serializeImagePackage() {
                 await MainActor.run {
                     self.zippedResult = data
+                }
+            }
+        }
+    }
+    
+    func serializeImagePackage() async -> Data? {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                if let capture = self.result.capturedFaces.first {
+                    let data = try? ImagePackage(image: capture.image, face: capture.face).serialized()
+                    continuation.resume(returning: data)
+                } else {
+                    continuation.resume(returning: nil)
                 }
             }
         }

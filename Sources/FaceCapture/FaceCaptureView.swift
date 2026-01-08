@@ -69,9 +69,6 @@ struct SessionView: View {
     
     @State private var orientation: CGImagePropertyOrientation = UIDevice.current.orientation.cgImagePropertyOrientation
     @State private var videoOrientation: AVCaptureVideoOrientation?
-    @State private var cameraTask: Task<(),Error>? = nil
-    @State private var cameraStream: AsyncStream<VerIDCommonTypes.Image>? = nil
-    @State private var startCameraTask: Task<(),Error>? = nil
     @State private var faceTrackingResult: FaceTrackingResult = .created(.straight)
     @State private var lineWidth: CGFloat = 10
     @State private var headAngle: (start: EulerAngle<Float>, end: EulerAngle<Float>) = (start: .init(), end: .init())
@@ -125,42 +122,39 @@ struct SessionView: View {
                         self.orientation = UIDevice.current.orientation.cgImagePropertyOrientation
                         self.videoOrientation = UIDevice.current.orientation.videoOrientation
                     }
+                    .task(priority: .high) {
+                        defer {
+                            Task { await self.cameraControl.stop() }
+                        }
+                        do {
+                            let cameraStream = try await self.cameraControl.start()
+                            var serialNumber: UInt64 = 0
+                            let startTime = CACurrentMediaTime()
+                            for await sample in cameraStream {
+                                if Task.isCancelled {
+                                    break
+                                }
+                                let viewSize = geometryReader.size
+                                self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: sample, viewSize: viewSize))
+                                serialNumber += 1
+                            }
+                        } catch {
+                            self.session.result = .failure(capturedFaces: [], metadata: [:], error: error)
+                        }
+                    }
                     .onAppear {
                         self.videoOrientation = UIDevice.current.orientation.videoOrientation
-                        if self.startCameraTask == nil {
-                            self.startCameraTask = Task(priority: .high) {
-                                if self.cameraStream == nil {
-                                    self.cameraStream = try await self.cameraControl.start()
-                                }
-                            }
-                        }
-                        if self.session.settings.countdownSeconds < 1 {
-                            self.startCapturingImages(geometryReader: geometryReader)
-                        } else {
+                        
+                        if self.session.settings.countdownSeconds > 1 {
                             (0...self.session.settings.countdownSeconds).publisher.flatMap(maxPublishers: .max(1)) {
                                 Just(self.session.settings.countdownSeconds-$0).delay(for: .seconds(1), scheduler: RunLoop.main)
                             }.sink {
                                 self.secondsRemainingToStart = $0
-                                if $0 == 0 {
-                                    self.startCapturingImages(geometryReader: geometryReader)
-                                }
                             }.store(in: &self.cancellables)
                         }
                     }
                     .onDisappear {
                         self.cancellables.forEach { $0.cancel() }
-                        if let startCameraTask = self.startCameraTask {
-                            startCameraTask.cancel()
-                            self.startCameraTask = nil
-                            Task {
-                                await self.cameraControl.stop()
-                            }
-                        }
-                        if let cameraTask = self.cameraTask {
-                            cameraTask.cancel()
-                            self.cameraTask = nil
-                        }
-                        self.cameraStream = nil
                     }
                     .onReceive(Just(geometryReader.size)) { size in
                         switch self.faceTrackingResult {
@@ -180,7 +174,7 @@ struct SessionView: View {
                         .clipShape(Ellipse())
                         .transformEffect(self.useBackCamera ? .identity : CGAffineTransform.horizontalMirror(in: trackedFaceSessionProperties.expectedFaceBounds.width))
                 }
-                if case .waiting = self.faceTrackingResult, self.secondsRemainingToStart > 0 {
+                if case .starting = self.faceTrackingResult, self.secondsRemainingToStart > 0 {
                     Text("\(self.secondsRemainingToStart)").font(.system(size: (self.faceTrackingResult.expectedFaceBounds?.height ?? 96) * 0.5, weight: .medium)).foregroundColor(.white).shadow(radius: 10)
                 }
                 FaceArrow(faceTrackingResult: self.faceTrackingResult, angleBearingEvaluation: self.angleBearingEvaluation)
@@ -234,61 +228,27 @@ struct SessionView: View {
         self.secondsRemainingToStart = session.settings.countdownSeconds
     }
     
-    private func startCapturingImages(geometryReader: GeometryProxy) {
-        self.cameraTask = Task(priority: .high) {
-//            let objUrl = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("ptcloud.obj")
-//            if let objUrl = objUrl {
-//                try? FileManager.default.removeItem(at: objUrl)
-//            }
-            guard let stream = self.cameraStream else {
-                return
-            }
-            var serialNumber: UInt64 = 0
-            let startTime = CACurrentMediaTime()
-            for await sample in stream {
-                if Task.isCancelled {
-                    break
-                }
-                let viewSize = geometryReader.size
-                self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: sample, viewSize: viewSize))
-                serialNumber += 1
-//                if var image = try? sample.video.convertToImage(), viewSize != .zero {
-//                    do {
-//                        try image.applyOrientation(self.orientation)
-//                    } catch {}
-//                    let rect = AVMakeRect(aspectRatio: viewSize, insideRect: CGRect(origin: .zero, size: image.size))
-//                    image.cropToRect(rect)
-//                    self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: image))
-//                    serialNumber += 1
-//                }
-//                if serialNumber > 10, let depthMap = sample.depth, let pointCloud = DepthDataConverter.default.pointCloudFromDepthData(depthMap), let objUrl = objUrl, !FileManager.default.fileExists(atPath: objUrl.path) {
-//                    var obj = "# OBJ file\n"
-//                    for pt in pointCloud {
-//                        if !pt.x.isNaN && !pt.y.isNaN && !pt.z.isNaN && pt.x.isFinite && pt.y.isFinite && pt.z.isFinite {
-//                            obj += "v \(pt.x) \(pt.y) \(pt.z)\n"
-//                        }
-//                    }
-//                    do {
-//                        try obj.data(using: .utf8)?.write(to: objUrl)
-//                        NSLog("Wrote OBJ file to \(objUrl)")
-//                    } catch {
-//                        NSLog("Failed to write OBJ file: \(error)")
-//                    }
-//                }
-            }
-            self.cameraTask = nil
-        }
-    }
-    
     private func cameraPreviewTransformFromResult(_ result: FaceTrackingResult, viewSize: CGSize) -> CGAffineTransform {
+        guard viewSize != .zero else {
+            return .identity
+        }
+        guard let expectedFaceBounds = result.expectedFaceBounds, let faceBounds = result.smoothedFace?.bounds else {
+            return .identity
+        }
         switch result {
+        case .starting, .started, .faceFound:
+            let scale = expectedFaceBounds.width / faceBounds.width
+            let faceFitsInView = faceBounds.minX > 0 && faceBounds.maxX < viewSize.width && faceBounds.minY > 0 && faceBounds.maxY < viewSize.height
+            if scale < 1 && faceFitsInView {
+                let cx = viewSize.width * 0.5
+                let cy = viewSize.height * 0.5
+                return CGAffineTransform(translationX: cx, y: cy)
+                    .scaledBy(x: scale, y: scale)
+                    .translatedBy(x: -cx, y: -cy)
+            } else {
+                return .identity
+            }
         case .faceAligned, .faceFixed, .faceMisaligned, .faceCaptured:
-            guard viewSize != .zero else {
-                return .identity
-            }
-            guard let expectedFaceBounds = result.expectedFaceBounds, let faceBounds = result.smoothedFace?.bounds else {
-                return .identity
-            }
             return CGAffineTransform.rect(faceBounds, to: expectedFaceBounds)
         default:
             return .identity

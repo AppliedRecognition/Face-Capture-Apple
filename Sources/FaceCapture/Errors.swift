@@ -29,6 +29,9 @@ public enum FaceCaptureError: Error, CustomStringConvertible, LocalizedError {
     /// Expression requires a face tracking result with a property that's unavailable on that particular result
     /// - Since: 1.0.0
     case invalidFaceTrackingResult
+    /// Thrown when the capture function fails to find a window or view controller in which to present its view controller
+    /// - Since: 2.2.0
+    case failedToPresentViewController
     
     /// String description of the error
     /// - Since: 1.0.0
@@ -46,6 +49,8 @@ public enum FaceCaptureError: Error, CustomStringConvertible, LocalizedError {
             return "Passive liveness check failed: \(failure)"
         case .invalidFaceTrackingResult:
             return "Invalid face tracking result"
+        case .failedToPresentViewController:
+            return "Failed to present face capture view"
         }
     }
     
@@ -63,6 +68,8 @@ public enum FaceCaptureError: Error, CustomStringConvertible, LocalizedError {
             return String(format: NSLocalizedString("Passive liveness check failed: %@", comment: ""), NSLocalizedString(failure, comment: ""))
         case .invalidFaceTrackingResult:
             return NSLocalizedString("Invalid face tracking result", comment: "")
+        case .failedToPresentViewController:
+            return NSLocalizedString("Failed to present face capture view", comment: "")
         }
     }
 }
