@@ -4,7 +4,7 @@ This library captures images (and depth data if available) from an iOS device an
 
 ## Requirements
 
-The face capture runs on iOS 13 or newer. iOS 14 is the recommended minimum version that includes all features.
+The face capture runs on iOS 15 or newer.
 
 ## Installation
 
