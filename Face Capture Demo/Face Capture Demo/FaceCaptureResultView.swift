@@ -11,21 +11,20 @@ import Serialization
 import UniformTypeIdentifiers
 
 struct FaceCaptureResultView: View {
-    
+
     let result: FaceCaptureSessionResult
     let title: String
+    @StateObject private var viewModel: FaceCaptureResultViewModel
     @State var isPresentingShareSheet = false
-    @State var zippedResult: Data? = nil
-    
+
     init(result: FaceCaptureSessionResult) {
         self.result = result
-        if case .success = result {
-            self.title = "Succeeded"
-        } else {
-            self.title = "Failed"
-        }
+        self.title = {
+            if case .success = result { return "Succeeded" } else { return "Failed" }
+        }()
+        _viewModel = StateObject(wrappedValue: FaceCaptureResultViewModel(result: result))
     }
-    
+
     var body: some View {
         VStack {
             switch result {
@@ -67,41 +66,24 @@ struct FaceCaptureResultView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .disabled(self.zippedResult == nil)
+                .disabled(viewModel.zippedResult == nil)
             }
         }
         .sheet(isPresented: self.$isPresentingShareSheet) {
-            if let zip = self.zippedResult, let image = self.result.capturedFaces.first?.image.toCGImage() {
+            if let zip = viewModel.zippedResult, let image = self.result.capturedFaces.first?.image.toCGImage() {
                 ShareSheet(items: [Image3DActivityItem(data: zip, name: "Image", image: UIImage(cgImage: image))])
             }
         }
         .task(priority: .utility) {
-            if let data = await self.serializeImagePackage() {
-                await MainActor.run {
-                    self.zippedResult = data
-                }
-            }
-        }
-    }
-    
-    func serializeImagePackage() async -> Data? {
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                if let capture = self.result.capturedFaces.first {
-                    let data = try? ImagePackage(image: capture.image, face: capture.face).serialized()
-                    continuation.resume(returning: data)
-                } else {
-                    continuation.resume(returning: nil)
-                }
-            }
+            await viewModel.prepareShareData()
         }
     }
 }
 
 struct ResultMetadataView: View {
-    
-    let metadata: [String:TaskResults]
-    
+
+    let metadata: [String: TaskResults]
+
     var body: some View {
         ForEach(metadata.sorted(by: { $0.key < $1.key }), id: \.key) { name, value in
             Divider()
@@ -114,61 +96,58 @@ struct ResultMetadataView: View {
                 Spacer()
             }
         }
-        
     }
 }
 
 struct ShareSheet: UIViewControllerRepresentable {
-    
+
     let items: [Any]
-    
+
     func makeUIViewController(context: Context) -> some UIViewController {
         UIActivityViewController(activityItems: self.items, applicationActivities: nil)
     }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-        
-    }
+
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
 }
 
 class Image3DActivityItem: NSObject, UIActivityItemSource {
-    
+
     let data: Data
     let name: String
     let image: UIImage
-    
+
     init(data: Data, name: String, image: UIImage) {
         self.data = data
         self.name = name
         self.image = image
     }
-    
+
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
         self.data
     }
-    
+
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
         self.data
     }
-    
+
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String {
         self.name
     }
-    
+
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String {
         UTType.data.identifier
     }
-    
+
     func activityViewController(_ activityViewController: UIActivityViewController, thumbnailImageForActivityType activityType: UIActivity.ActivityType?, suggestedSize size: CGSize) -> UIImage? {
-        UIGraphicsImageRenderer(size: size).image { context in
+        UIGraphicsImageRenderer(size: size).image { _ in
             let scale: CGFloat
-            if size.width/size.height > self.image.size.width/self.image.size.height {
+            if size.width / size.height > self.image.size.width / self.image.size.height {
                 scale = size.width / self.image.size.width
             } else {
                 scale = size.height / self.image.size.height
             }
-            let width: CGFloat = self.image.size.width * scale
-            let height: CGFloat = self.image.size.height * scale
+            let width = self.image.size.width * scale
+            let height = self.image.size.height * scale
             self.image.draw(in: CGRect(x: size.width / 2 - width / 2, y: size.height / 2 - height / 2, width: width, height: height))
         }
     }

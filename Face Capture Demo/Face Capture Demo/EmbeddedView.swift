@@ -9,23 +9,21 @@ import SwiftUI
 import FaceCapture
 
 struct EmbeddedView: View {
-    
+
     @Binding var navigationPath: NavigationPath
+    @EnvironmentObject private var settings: Settings
+    @StateObject private var viewModel = EmbeddedViewModel()
+
     let title: String
     let description: String
     @State var promptText: String = ""
     @State var navigationBarTitleDisplayMode: NavigationBarItem.TitleDisplayMode = .large
-    @State var session: FaceCaptureSession?
-    @State var result: FaceCaptureSessionResult?
-    var useBackCamera: Bool {
-        Settings().useBackCamera
-    }
-    
+
     var body: some View {
         GeometryReader { geometryReader in
             VStack {
-                if let session = self.session, self.result == nil {
-                    FaceCaptureView(session: session, result: self.$result, configuration: FaceCaptureViewConfiguration(useBackCamera: self.useBackCamera, textPrompt: self.$promptText, showTextPrompts: false, showCancelButton: false))
+                if let session = viewModel.session, viewModel.result == nil {
+                    FaceCaptureView(session: session, result: $viewModel.result, configuration: FaceCaptureViewConfiguration(useBackCamera: settings.useBackCamera, textPrompt: self.$promptText, showTextPrompts: false, showCancelButton: false))
                         .frame(height: geometryReader.size.height * 0.66)
                         .background {
                             RoundedRectangle(cornerRadius: 16).fill(Color.gray)
@@ -38,17 +36,16 @@ struct EmbeddedView: View {
                     Divider().padding(.vertical, 8)
                 }
                 HStack {
-                    if let session = self.session, self.result == nil {
+                    if viewModel.session != nil && viewModel.result == nil {
                         Button {
-                            session.cancel()
+                            viewModel.cancelCapture()
                         } label: {
                             Image(systemName: "hand.raised.fill")
                             Text("Cancel capture")
                         }
                     } else {
                         Button {
-                            self.result = nil
-                            CaptureSessionConfiguration.configureFaceCaptureSession($session, result: $result)
+                            viewModel.startCapture(settings: settings)
                         } label: {
                             Image(systemName: "camera.fill")
                             Text("Start capture")
@@ -75,17 +72,15 @@ struct EmbeddedView: View {
             .onAppear {
                 self.promptText = self.title
             }
-            .onChange(of: self.result) { result in
-                if let result = result {
-                    self.session = nil
-                    if case .cancelled = result {} else {
-                        Task { @MainActor in
-                            self.navigationPath.append(result)
-                        }
-                    }
+            .onChange(of: viewModel.result) { result in
+                guard let result else { return }
+                viewModel.clearSession()
+                if case .cancelled = result { return }
+                Task { @MainActor in
+                    self.navigationPath.append(result)
                 }
             }
-            .onChange(of: self.session) { session in
+            .onChange(of: viewModel.session) { session in
                 if session != nil {
                     self.navigationBarTitleDisplayMode = .inline
                 } else {

@@ -12,6 +12,10 @@
 		3B37509F2B698D9C000F44BB /* ModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B37509E2B698D9C000F44BB /* ModalView.swift */; };
 		3B3750A12B698DA1000F44BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A02B698DA1000F44BB /* Assets.xcassets */; };
 		3B3750A42B698DA1000F44BB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B3750A32B698DA1000F44BB /* Preview Assets.xcassets */; };
+		3B40F0D92F71DEAA002D36CB /* FaceCaptureResultViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B40F0D62F71DEAA002D36CB /* FaceCaptureResultViewModel.swift */; };
+		3B40F0DA2F71DEAA002D36CB /* EmbeddedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B40F0D52F71DEAA002D36CB /* EmbeddedViewModel.swift */; };
+		3B40F0DB2F71DEAA002D36CB /* IndexViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B40F0D72F71DEAA002D36CB /* IndexViewModel.swift */; };
+		3B40F0DC2F71DEAA002D36CB /* ModalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B40F0D82F71DEAA002D36CB /* ModalViewModel.swift */; };
 		3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */; };
 		3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD32B72C258008A801D /* IndexView.swift */; };
 		3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6CCDD52B72C766008A801D /* EmbeddedView.swift */; };
@@ -32,6 +36,10 @@
 		3B37509E2B698D9C000F44BB /* ModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalView.swift; sourceTree = "<group>"; };
 		3B3750A02B698DA1000F44BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B3750A32B698DA1000F44BB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		3B40F0D52F71DEAA002D36CB /* EmbeddedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedViewModel.swift; sourceTree = "<group>"; };
+		3B40F0D62F71DEAA002D36CB /* FaceCaptureResultViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCaptureResultViewModel.swift; sourceTree = "<group>"; };
+		3B40F0D72F71DEAA002D36CB /* IndexViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexViewModel.swift; sourceTree = "<group>"; };
+		3B40F0D82F71DEAA002D36CB /* ModalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalViewModel.swift; sourceTree = "<group>"; };
 		3B4A6C7B2B73B7680026EC12 /* FaceCaptureResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCaptureResultView.swift; sourceTree = "<group>"; };
 		3B6CCDD32B72C258008A801D /* IndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexView.swift; sourceTree = "<group>"; };
 		3B6CCDD52B72C766008A801D /* EmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedView.swift; sourceTree = "<group>"; };
@@ -76,6 +84,10 @@
 		3B37509B2B698D9C000F44BB /* Face Capture Demo */ = {
 			isa = PBXGroup;
 			children = (
+				3B40F0D52F71DEAA002D36CB /* EmbeddedViewModel.swift */,
+				3B40F0D62F71DEAA002D36CB /* FaceCaptureResultViewModel.swift */,
+				3B40F0D72F71DEAA002D36CB /* IndexViewModel.swift */,
+				3B40F0D82F71DEAA002D36CB /* ModalViewModel.swift */,
 				3B8E27D12B7CBBE2009BB2FD /* Face-Capture-Demo-Info.plist */,
 				3BB31AE62B7C176000572844 /* Ver-ID.identity */,
 				3B37509C2B698D9C000F44BB /* Face_Capture_DemoApp.swift */,
@@ -188,6 +200,10 @@
 				3BE1A5FE2B762B37005E853C /* Settings.swift in Sources */,
 				3B4A6C7C2B73B7680026EC12 /* FaceCaptureResultView.swift in Sources */,
 				3B15EFA72E43A0A700938641 /* CaptureSessionConfiguration.swift in Sources */,
+				3B40F0D92F71DEAA002D36CB /* FaceCaptureResultViewModel.swift in Sources */,
+				3B40F0DA2F71DEAA002D36CB /* EmbeddedViewModel.swift in Sources */,
+				3B40F0DB2F71DEAA002D36CB /* IndexViewModel.swift in Sources */,
+				3B40F0DC2F71DEAA002D36CB /* ModalViewModel.swift in Sources */,
 				3B6CCDD42B72C258008A801D /* IndexView.swift in Sources */,
 				3B6CCDD82B72C770008A801D /* NavStackView.swift in Sources */,
 				3B6CCDD62B72C766008A801D /* EmbeddedView.swift in Sources */,

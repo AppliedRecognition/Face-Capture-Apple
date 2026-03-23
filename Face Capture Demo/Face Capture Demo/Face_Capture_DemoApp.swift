@@ -7,20 +7,19 @@
 
 import SwiftUI
 import FaceCapture
-import AVFoundation
-import VerIDCommonTypes
-import FaceDetectionRetinaFace
 
 @main
 struct Face_Capture_DemoApp: App {
-    
+
+    @StateObject private var settings = Settings()
     @State var navigationPath = NavigationPath()
-    
+
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: self.$navigationPath) {
                 IndexView(navigationPath: self.$navigationPath)
             }
+            .environmentObject(settings)
         }
     }
 }
