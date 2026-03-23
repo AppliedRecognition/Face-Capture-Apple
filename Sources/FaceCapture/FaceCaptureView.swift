@@ -123,20 +123,18 @@ struct SessionView: View {
                         self.videoOrientation = UIDevice.current.orientation.videoOrientation
                     }
                     .task(priority: .high) {
+                        self.session.start()
                         defer {
                             Task { await self.cameraControl.stop() }
                         }
                         do {
                             let cameraStream = try await self.cameraControl.start()
-                            var serialNumber: UInt64 = 0
-                            let startTime = CACurrentMediaTime()
+                            var viewState = FaceCaptureViewState()
                             for await sample in cameraStream {
                                 if Task.isCancelled {
                                     break
                                 }
-                                let viewSize = geometryReader.size
-                                self.session.submitImageInput(FaceCaptureSessionImageInput(serialNumber: serialNumber, time: CACurrentMediaTime()-startTime, image: sample, viewSize: viewSize))
-                                serialNumber += 1
+                                viewState.processImage(sample, session: self.session, viewSize: geometryReader.size)
                             }
                         } catch {
                             self.session.result = .failure(capturedFaces: [], metadata: [:], error: error)

@@ -49,6 +49,7 @@ struct CaptureSessionConfiguration {
         case .apple:
             configuration.faceDetection = AppleFaceDetection()
         }
+        configuration.settings.faceCaptureCount = settings.enableActiveLiveness ? 2 : 1
         if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
             configuration.faceTrackingPlugins = [DepthLivenessDetection()]
         }
