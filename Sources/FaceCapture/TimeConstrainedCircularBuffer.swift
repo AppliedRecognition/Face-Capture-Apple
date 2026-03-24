@@ -54,7 +54,7 @@ class TimeConstrainedCircularBuffer<T>: Sequence, IteratorProtocol {
     
     subscript(index: Int) -> T? {
         self.lock.withLock {
-            guard index > 0 && index < self.buffer.count else {
+            guard index >= 0 && index < self.buffer.count else {
                 return nil
             }
             return self.buffer[index].element

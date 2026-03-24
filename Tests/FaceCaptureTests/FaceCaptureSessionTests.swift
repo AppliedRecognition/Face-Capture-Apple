@@ -6,6 +6,7 @@ final class FaceCaptureSessionTests: XCTestCase {
     
     func testSession() throws {
         let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), faceDetection: MockFaceDetection())
+        session.start()
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
@@ -39,7 +40,8 @@ final class FaceCaptureSessionTests: XCTestCase {
     }
     
     func testFailSessionInPlugin() throws {
-        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), faceDetection: MockFaceDetection())
+        let session = FaceCaptureSession(settings: FaceCaptureSessionSettings(), faceDetection: MockFaceDetection(), faceTrackingPlugins: [MockThrowingFaceTrackingPlugin()])
+        session.start()
         var serial: UInt64 = 0
         let start = CACurrentMediaTime()
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
@@ -74,10 +76,15 @@ final class FaceCaptureSessionTests: XCTestCase {
     
     private func createSessionInput(serial: UInt64, time: TimeInterval) -> FaceCaptureSessionImageInput {
         let imageSize = CGSize(width: 600, height: 800)
-        guard let image = UIGraphicsImageRenderer(size: imageSize).image(actions: { _ in }).cgImage else {
-            fatalError()
-        }
-        return FaceCaptureSessionImageInput(serialNumber: serial, time: time, image: Image(cgImage: image)!, viewSize: imageSize)
+        return FaceCaptureSessionImageInput(serialNumber: serial, time: time, image: Image(cgImage: makeCGImage(width: Int(imageSize.width), height: Int(imageSize.height)))!, viewSize: imageSize)
+    }
+    
+    private func makeCGImage(width: Int = 600, height: Int = 800) -> CGImage {
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: colorSpace, bitmapInfo: bitmapInfo.rawValue),
+              let cgImage = context.makeImage() else { fatalError("Failed to create CGImage") }
+        return cgImage
     }
 }
 
