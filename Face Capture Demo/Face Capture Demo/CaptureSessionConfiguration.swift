@@ -6,32 +6,15 @@
 //
 
 import Foundation
-import SwiftUI
 import FaceCapture
 import AVFoundation
-import VerIDCommonTypes
 import FaceDetectionRetinaFace
 
 struct CaptureSessionConfiguration {
-    
-    static func configureFaceCaptureSession(_ session: Binding<FaceCaptureSession?>, result: Binding<FaceCaptureSessionResult?>) {
+
+    static func createFaceCaptureSession(settings: Settings) throws -> FaceCaptureSession {
         var config = FaceCaptureConfiguration()
-        do {
-            try configureFaceCapture(configuration: &config)
-            session.wrappedValue = FaceCaptureSession(
-                settings: config.settings,
-                faceDetection: config.faceDetection,
-                faceTrackingPlugins: config.faceTrackingPlugins,
-                faceTrackingResultTransformers: config.faceTrackingResultTransformers
-            )
-        } catch {
-            result.wrappedValue = FaceCaptureSessionResult.failure(capturedFaces: [], metadata: [:], error: error)
-        }
-    }
-    
-    static func createFaceCaptureSession() throws -> FaceCaptureSession {
-        var config = FaceCaptureConfiguration()
-        try configureFaceCapture(configuration: &config)
+        try configureFaceCapture(configuration: &config, settings: settings)
         return FaceCaptureSession(
             settings: config.settings,
             faceDetection: config.faceDetection,
@@ -39,9 +22,8 @@ struct CaptureSessionConfiguration {
             faceTrackingResultTransformers: config.faceTrackingResultTransformers
         )
     }
-    
-    static func configureFaceCapture(configuration: inout FaceCaptureConfiguration) throws {
-        let settings = Settings()
+
+    static func configureFaceCapture(configuration: inout FaceCaptureConfiguration, settings: Settings) throws {
         let cameraPosition: AVCaptureDevice.Position = settings.useBackCamera ? .back : .front
         switch settings.faceDetection {
         case .retinaFace:
@@ -49,6 +31,7 @@ struct CaptureSessionConfiguration {
         case .apple:
             configuration.faceDetection = AppleFaceDetection()
         }
+        configuration.settings.faceCaptureCount = settings.enableActiveLiveness ? 2 : 1
         if FaceCaptureSession.supportsDepthCaptureOnDeviceAt(cameraPosition) {
             configuration.faceTrackingPlugins = [DepthLivenessDetection()]
         }

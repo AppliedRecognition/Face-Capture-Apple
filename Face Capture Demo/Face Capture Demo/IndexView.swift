@@ -9,21 +9,15 @@ import SwiftUI
 import FaceCapture
 
 struct IndexView: View {
-    
+
     @Binding var navigationPath: NavigationPath
-    
+    @EnvironmentObject private var settings: Settings
+    @StateObject private var viewModel = IndexViewModel()
+
     var body: some View {
         _IndexView { demo in
             if case .function = demo {
-                Task(priority: .utility) {
-                    let result = await FaceCapture.captureFaces(configure: CaptureSessionConfiguration.configureFaceCapture)
-                    if case .cancelled = result {
-                        return
-                    }
-                    await MainActor.run {
-                        self.navigationPath.append(result)
-                    }
-                }
+                viewModel.runCaptureFunction(settings: settings)
             } else {
                 self.navigationPath.append(demo)
             }
@@ -43,13 +37,18 @@ struct IndexView: View {
         .navigationDestination(for: FaceCaptureSessionResult.self) { result in
             FaceCaptureResultView(result: result)
         }
+        .onChange(of: viewModel.captureResult) { result in
+            if let result {
+                navigationPath.append(result)
+            }
+        }
     }
 }
 
 fileprivate struct _IndexView: View {
-    
+
     let onNavigate: (Demo) -> Void
-    
+
     var body: some View {
         List {
             DemoSection(demo: .modal(title: "Modal", description: "This example shows how to configure and run face capture presented in a modal sheet."), onNavigate: self.onNavigate)
@@ -78,33 +77,25 @@ fileprivate enum Demo: Hashable {
     case embedded(title: String, description: String)
     case navigationStack(title: String, description: String)
     case function(title: String, description: String)
-    
+
     var title: String {
         switch self {
-        case .modal(title: let title, description: _):
-            return title
-        case .embedded(title: let title, description: _):
-            return title
-        case .navigationStack(title: let title, description: _):
-            return title
-        case .function(title: let title, description: _):
-            return title
+        case .modal(title: let title, description: _): return title
+        case .embedded(title: let title, description: _): return title
+        case .navigationStack(title: let title, description: _): return title
+        case .function(title: let title, description: _): return title
         }
     }
-    
+
     var description: String {
         switch self {
-        case .modal(title: _, description: let description):
-            return description
-        case .embedded(title: _, description: let description):
-            return description
-        case .navigationStack(title: _, description: let description):
-            return description
-        case .function(title: _, description: let description):
-            return description
+        case .modal(title: _, description: let description): return description
+        case .embedded(title: _, description: let description): return description
+        case .navigationStack(title: _, description: let description): return description
+        case .function(title: _, description: let description): return description
         }
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(String(describing: self))
         hasher.combine("\(self.title)")
@@ -113,10 +104,10 @@ fileprivate enum Demo: Hashable {
 }
 
 fileprivate struct DemoSection: View {
-    
+
     let demo: Demo
     let onNavigate: (Demo) -> Void
-    
+
     var body: some View {
         Section {
             HStack {
@@ -136,7 +127,7 @@ fileprivate struct DemoSection: View {
 }
 
 struct IndexView_Previews: PreviewProvider {
-    
+
     static var previews: some View {
         NavigationStack {
             _IndexView(onNavigate: { _ in })

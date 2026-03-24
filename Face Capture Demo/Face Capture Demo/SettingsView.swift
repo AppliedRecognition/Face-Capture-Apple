@@ -11,7 +11,7 @@ import FaceCapture
 
 struct SettingsView: View {
     
-    @ObservedObject private var settings: Settings = Settings()
+    @EnvironmentObject private var settings: Settings
     @ObservedObject private var head3DSettings = Head3DSettings()
     
     var body: some View {

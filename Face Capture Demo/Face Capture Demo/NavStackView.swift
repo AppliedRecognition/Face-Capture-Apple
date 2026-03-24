@@ -9,14 +9,13 @@ import SwiftUI
 import FaceCapture
 
 struct NavStackView: View {
-    
+
     @Binding var navigationPath: NavigationPath
-    var useBackCamera: Bool {
-        Settings().useBackCamera
-    }
+    @EnvironmentObject private var settings: Settings
+
     let title: String
     let description: String
-    
+
     var body: some View {
         VStack {
             HStack {
@@ -26,7 +25,7 @@ struct NavStackView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    if let session = try? CaptureSessionConfiguration.createFaceCaptureSession() {
+                    if let session = try? CaptureSessionConfiguration.createFaceCaptureSession(settings: settings) {
                         self.navigationPath.append(session)
                     }
                 } label: {
@@ -41,7 +40,7 @@ struct NavStackView: View {
         .padding()
         .navigationTitle(self.title)
         .navigationDestination(for: FaceCaptureSession.self) { session in
-            FaceCaptureNavigationView(session: session, useBackCamera: self.useBackCamera) { result in
+            FaceCaptureNavigationView(session: session, useBackCamera: settings.useBackCamera) { result in
                 Task { @MainActor in
                     self.navigationPath.removeLast()
                     self.navigationPath.append(result)

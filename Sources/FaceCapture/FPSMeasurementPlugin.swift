@@ -12,27 +12,33 @@ public class FPSMeasurementPlugin: FaceTrackingPlugin {
     public typealias Element = FPSMeasurement
     public let name: String = "FPS measurement"
     
-    var times: [TimeInterval]
-    
+    var recentTimes: [TimeInterval]
+    var startTime: TimeInterval?
+    var totalCount: Int
+
     public init() {
-        self.times = []
+        self.recentTimes = []
+        self.startTime = nil
+        self.totalCount = 0
     }
-    
+
     public func processFaceTrackingResult(_ faceTrackingResult: FaceTrackingResult) throws -> FPSMeasurement {
         guard let time = faceTrackingResult.time else {
             throw FaceCaptureError.invalidFaceTrackingResult
         }
-        self.times.append(time)
+        if self.startTime == nil { self.startTime = time }
+        self.totalCount += 1
         let oneSecAgo = time - 1.0
+        self.recentTimes.removeAll(where: { $0 < oneSecAgo })
+        self.recentTimes.append(time)
         let sinceStart: Double
-        if let earliest = self.times.min() {
-            let duration = time - earliest
-            sinceStart = Double(self.times.count) / duration
+        if let start = self.startTime {
+            let duration = time - start
+            sinceStart = duration > 0 ? Double(self.totalCount) / duration : 0
         } else {
             sinceStart = 0
         }
-        let lastSecond = Double(self.times.filter { $0 >= oneSecAgo }.count)
-        return FPSMeasurement(lastSecond: lastSecond, sinceStart: sinceStart)
+        return FPSMeasurement(lastSecond: Double(self.recentTimes.count), sinceStart: sinceStart)
     }
     
     public func createSummaryFromResults(_ results: [FaceTrackingPluginResult<FPSMeasurement>]) async -> String {

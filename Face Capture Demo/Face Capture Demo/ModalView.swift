@@ -9,16 +9,14 @@ import SwiftUI
 import FaceCapture
 
 struct ModalView: View {
-    
+
     @Binding var navigationPath: NavigationPath
-    @State var session: FaceCaptureSession?
-    @State var result: FaceCaptureSessionResult? = nil
-    var useBackCamera: Bool {
-        Settings().useBackCamera
-    }
+    @EnvironmentObject private var settings: Settings
+    @StateObject private var viewModel = ModalViewModel()
+
     let title: String
     let description: String
-    
+
     var body: some View {
         VStack {
             HStack {
@@ -28,7 +26,7 @@ struct ModalView: View {
             Divider().padding(.vertical, 8)
             HStack {
                 Button {
-                    CaptureSessionConfiguration.configureFaceCaptureSession($session, result: $result)
+                    viewModel.startCapture(settings: settings)
                 } label: {
                     Image(systemName: "camera.fill")
                     Text("Start capture")
@@ -39,17 +37,13 @@ struct ModalView: View {
             Spacer()
         }
         .padding()
-        .sheet(item: self.$session) { session in
-            FaceCaptureView(session: session, result: self.$result, configuration: FaceCaptureViewConfiguration(useBackCamera: self.useBackCamera))
+        .sheet(item: $viewModel.session) { session in
+            FaceCaptureView(session: session, result: $viewModel.result, configuration: FaceCaptureViewConfiguration(useBackCamera: settings.useBackCamera))
         }
-        .onChange(of: self.result) { result in
-            if let result = result {
-                if case .cancelled = result {} else {
-                    Task { @MainActor in
-                        self.navigationPath.append(result)
-                    }
-                }
-            }
+        .onChange(of: viewModel.result) { result in
+            guard let result else { return }
+            if case .cancelled = result { return }
+            navigationPath.append(result)
         }
         .toolbar {
             ToolbarItem {

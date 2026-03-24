@@ -72,33 +72,19 @@ final class SessionFaceTracking {
             if self.settings.faceCaptureCount > 1 {
                 self.angleHistory.append(smoothedFace.angle)
                 if let previousBearing = self.previousBearing, previousBearing != self.requestedBearing {
-                    //                    let previousAngle = self.angleBearingEvaluation.angle(forBearing: previousBearing)
-                    //                    let currentAngle = self.angleBearingEvaluation.angle(forBearing: self.requestedBearing)
-                    //                    let startYaw = min(previousAngle.yaw, currentAngle.yaw)
-                    //                    let endYaw = max(previousAngle.yaw, currentAngle.yaw)
-                    //                    let yawTolerance = self.angleBearingEvaluation.thresholdAngleTolerance(forAxis: .yaw)
-                    //                    var movedTooFast = self.angleHistory.count > 1
                     var movedOpposite = false
                     for angle in self.angleHistory {
-                        //                        if angle.yaw > startYaw + yawTolerance && angle.yaw < endYaw - yawTolerance {
-                        //                            movedTooFast = false
-                        //                        }
                         if !self.angleBearingEvaluation.angle(angle, isBetweenBearing: previousBearing, and: self.requestedBearing) {
                             movedOpposite = true
                             break
                         }
                     }
-                    //                    if movedTooFast {
-                    //                        throw "Moved too fast"
-                    ////                        throw FaceCaptureError.activeLivenessError(reason: .movedTooFast(bearing: requestedBearing))
-                    //                    }
                     if movedOpposite {
                         throw FaceCaptureError.activeLivenessCheckFailed(.faceMovedOpposite)
-                        //                        throw FaceCaptureError.activeLivenessError(reason: .movedOpposite(bearing: requestedBearing))
                     }
                 }
             }
-        } else if imageCapture.time < Double(self.settings.faceCaptureCount) {
+        } else if imageCapture.time < Double(self.settings.countdownSeconds) {
             return .starting(StartedSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, smoothedFace: nil))
         } else {
             self.angleHistory.removeAll()
@@ -127,9 +113,7 @@ final class SessionFaceTracking {
                         if self.settings.faceCaptureCount > 1 && self.settings.availableBearings.count > 1 {
                             var bearings = Array(self.settings.availableBearings)
                             bearings.removeAll(where: { $0 == self.requestedBearing })
-                            let rand = Int(arc4random_uniform(UInt32(bearings.count)))
-                            let index = bearings.index(bearings.startIndex, offsetBy: rand)
-                            self.requestedBearing = bearings[index]
+                            self.requestedBearing = bearings[Int.random(in: 0..<bearings.count)]
                         }
                     } else {
                         result = .faceAligned(props)
@@ -142,7 +126,6 @@ final class SessionFaceTracking {
         }
         if self.faces.isEmpty && self.hasFaceBeenFixed {
             throw FaceCaptureError.activeLivenessCheckFailed(.faceLost)
-//            throw FaceCaptureError.facePresenceError(reason: .faceLost(bearing: self.requestedBearing))
         }
         if !self.faces.isEmpty {
             let properties = TrackedFaceSessionProperties(input: imageCapture, requestedBearing: self.requestedBearing, expectedFaceBounds: expectedFaceBounds, face: self.faces.last!.face, smoothedFace: self.smoothedFace!)
