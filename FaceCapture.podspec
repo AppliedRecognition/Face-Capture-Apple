@@ -1,7 +1,7 @@
 Pod::Spec.new do |spec|
 
   spec.name = "FaceCapture"
-  spec.version = "1.1.1"
+  spec.version = "2.2.1"
   spec.summary = "Capture live face for face recognition"
   spec.homepage = "https://github.com/AppliedRecognition/Face-Capture-Apple"
   spec.license = { :type => "Commercial", :file => "LICENCE.txt" }
