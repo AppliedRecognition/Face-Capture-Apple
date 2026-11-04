@@ -145,7 +145,17 @@ actor CameraControl {
 
 fileprivate class CameraControlDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureDataOutputSynchronizerDelegate {
     
-    var continuation: AsyncStream<Image>.Continuation?
+    /// The stream the capture session feeds.
+    ///
+    /// Guarded, because it is read from `bgQueue` in both `captureOutput` callbacks and
+    /// written by `CameraControl.stop()` on the actor's executor. The optional is the
+    /// only part that is not thread-safe: `AsyncStream.Continuation` may be yielded to
+    /// and finished from any thread, and `@Atomic`'s getter returns a retained copy
+    /// before the yield, so the lock is never held across a call into the stream.
+    ///
+    /// Unguarded, tearing down a capture while a frame is in flight releases the
+    /// continuation concurrently and traps in `swift_deallocClassInstance`.
+    @Atomic var continuation: AsyncStream<Image>.Continuation?
     var videoDataOutput: AVCaptureVideoDataOutput?
     var depthDataOutput: AVCaptureDepthDataOutput?
     var orientation: CGImagePropertyOrientation = .up
