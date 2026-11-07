@@ -8,6 +8,20 @@ This library captures images (and depth data if available) from an iOS device an
 
 **`2.2.x` is a supported maintenance line.** It receives security and crash fixes only, cherry-picked from here, and does not receive features or behaviour changes. Its policy, and who owns it, are recorded in [`MAINTENANCE.md`](https://github.com/AppliedRecognition/Face-Capture-Apple/blob/2.2.x/MAINTENANCE.md) on that branch. If you are on 2.2, that file is the one that tells you what to expect.
 
+### How a release reaches you
+
+The library is delivered through two channels, and a release has to be published to both:
+
+* **SwiftPM** resolves this repository by tag, so an `~> 3.0` version rule picks a new release
+  up on your next resolve.
+* **CocoaPods** resolves through Applied Recognition's private spec repository,
+  [`Ver-ID-CocoaPods-Repo`](https://github.com/AppliedRecognition/Ver-ID-CocoaPods-Repo),
+  and not through CocoaPods trunk. A tagged release is not visible to `pod install` until
+  its podspec is published there.
+
+Access to that spec repository comes with the same credentials as the package repositories;
+see the Installation section below.
+
 ## Requirements
 
 The face capture runs on iOS 15 or newer.
