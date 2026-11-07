@@ -2,6 +2,12 @@
 
 This library captures images (and depth data if available) from an iOS device and detects faces that can be used for face recognition.
 
+## Supported versions
+
+**`3.x` is the current line**, and where all new work lands. This is the version to start on.
+
+**`2.2.x` is a supported maintenance line.** It receives security and crash fixes only, cherry-picked from here, and does not receive features or behaviour changes. Its policy, and who owns it, are recorded in [`MAINTENANCE.md`](https://github.com/AppliedRecognition/Face-Capture-Apple/blob/2.2.x/MAINTENANCE.md) on that branch. If you are on 2.2, that file is the one that tells you what to expect.
+
 ## Requirements
 
 The face capture runs on iOS 15 or newer.
