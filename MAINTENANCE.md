@@ -51,8 +51,13 @@ to `pod install`. Check both before calling a release done.
 
 ## Owner
 
-Ray Ganong (`rayearl`). Naming one matters because the failure mode of a dormant branch is
-not untidiness — it is a consumer waiting on a fix that nobody is watching for.
+**Applied Recognition**, the organisation that maintains `Face-Capture-Apple` — reachable at
+[support@appliedrecognition.com](mailto:support@appliedrecognition.com), the address the
+README already gives for credentials.
+
+Naming an owner matters because the failure mode of a dormant branch is not untidiness — it
+is a consumer waiting on a fix that nobody is watching for. A team rather than a person, so
+that the commitment survives any one of us leaving.
 
 ## End of life
 
