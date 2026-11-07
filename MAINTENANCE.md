@@ -36,9 +36,18 @@ git cherry-pick -x <commit-on-main>
 one thing this branch exists to prevent.
 
 Then bump `spec.version` in `FaceCapture.podspec` and tag the patch — `2.2.2`, and so on.
-The tag *is* the release: this repository has no GitHub releases and no CI, so nothing
-publishes itself, and a `~> 2.2` version rule picks the tag up on the consumer's next
-resolve.
+
+There is no CI and no GitHub release here, so nothing publishes itself, and a release is
+not one step. The library reaches consumers two ways, and tagging covers only one of them:
+
+* **SwiftPM** resolves this repository by tag, so tagging is what reaches those consumers —
+  a `~> 2.2` version rule picks the patch up on their next resolve.
+* **CocoaPods** resolves through the private spec repository the README names,
+  `Ver-ID-CocoaPods-Repo`, and **not** through CocoaPods trunk. The podspec has to be
+  published there as well, or those consumers never see the release.
+
+A patch that is tagged but not published is therefore half-shipped: visible to SwiftPM, not
+to `pod install`. Check both before calling a release done.
 
 ## Owner
 
