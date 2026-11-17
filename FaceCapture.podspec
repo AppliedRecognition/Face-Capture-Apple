@@ -11,6 +11,6 @@ Pod::Spec.new do |spec|
   spec.source = { :git => "https://github.com/AppliedRecognition/Face-Capture-Apple.git", :tag => "#{spec.version}" }
   spec.source_files = "Sources/FaceCapture/*.swift"
   spec.resource_bundles = {"FaceCapture" => ["Sources/FaceCapture/Resources/**/*"] }
-  spec.dependency "VerIDCommonTypes", "~> 1.3"
+  spec.dependency "VerIDCommonTypes", "~> 3.3"
 
 end
